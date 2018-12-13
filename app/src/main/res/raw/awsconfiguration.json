@@ -1,0 +1,25 @@
+{
+  "CredentialsProvider": {
+    "CognitoIdentity": {
+      "Default": {
+        "PoolId": "us-east-1:591c729d-62b7-4af7-9e23-175e19f37432",
+        "Region": "us-east-1"
+      }
+    }
+  },
+  "CognitoUserPool": {
+    "Default": {
+      "PoolId": " us-east-1_ekd3FklGw",
+      "AppClientId": "XXXXXXXX",
+      "AppClientSecret": "XXXXXXXXX",
+      "Region": "us-east-1"
+    }
+  },
+  "AppSync": {
+    "Default": {
+      "ApiUrl": "https://mkx3kiswwjhuhcre7sejiayjei.appsync-api.us-east-1.amazonaws.com/graphql",
+      "Region": "us-east-1",
+      "AuthMode": "AMAZON_COGNITO_USER_POOLS"
+    }
+  }
+}

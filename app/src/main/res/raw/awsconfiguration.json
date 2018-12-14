@@ -1,4 +1,8 @@
 {
+  "Version": "0.1.0",
+  "IdentityManager": {
+    "Default": {}
+  },
   "CredentialsProvider": {
     "CognitoIdentity": {
       "Default": {
@@ -9,9 +13,8 @@
   },
   "CognitoUserPool": {
     "Default": {
-      "PoolId": " us-east-1_ekd3FklGw",
-      "AppClientId": "XXXXXXXX",
-      "AppClientSecret": "XXXXXXXXX",
+      "PoolId": "us-east-1_ekd3FklGw",
+      "AppClientId": "1ckqgrev3jrjatof0g0eql093n",
       "Region": "us-east-1"
     }
   },
@@ -19,7 +22,7 @@
     "Default": {
       "ApiUrl": "https://mkx3kiswwjhuhcre7sejiayjei.appsync-api.us-east-1.amazonaws.com/graphql",
       "Region": "us-east-1",
-      "AuthMode": "AMAZON_COGNITO_USER_POOLS"
+      "AuthMode": "AWS_IAM"
     }
   }
 }

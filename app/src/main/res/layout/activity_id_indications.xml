@@ -7,17 +7,22 @@
         android:layout_height="match_parent"
         tools:context=".IdIndications">
 
-    <android.support.design.widget.AppBarLayout android:layout_width="match_parent"
-                                                android:layout_height="wrap_content">
-            <android.support.v7.widget.Toolbar android:layout_width="match_parent"
-                                               android:background="@android:color/white"
-                                               android:layout_height="wrap_content"
-                                               app:title="Escanear Cédula"
-            >
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appBarLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-            </android.support.v7.widget.Toolbar>
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/id_indications_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            app:title="Escanear Cédula">
+
+        </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>
     <Button
+            android:onClick="scanBarcode"
             android:text="Continuar"
             android:textSize="16sp"
             android:background="@drawable/btn_blue"
@@ -50,5 +55,17 @@
             app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp"
             android:layout_marginBottom="56dp"
             app:layout_constraintBottom_toTopOf="@+id/button2"/>
+
+    <ImageView
+        android:layout_width="312dp"
+        android:layout_height="195dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout3"
+        app:srcCompat="@drawable/scan_image" />
 
 </android.support.constraint.ConstraintLayout>

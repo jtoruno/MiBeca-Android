@@ -13,14 +13,21 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.util.Log
 import android.view.View
-import android.widget.TextView
+import android.widget.*
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.client.Callback
 import com.amazonaws.mobile.client.results.SignUpResult
+import com.zimplifica.mibeca.idCardReader.Person
 import java.lang.Exception
+import java.util.regex.Pattern
 
 class FinishSignUp : AppCompatActivity() {
     lateinit var termnsTxt : TextView
+    lateinit var userInfo : Person
+    lateinit var phoneNumber : String
+    lateinit var signUpBtn : Button
+    lateinit var password : EditText
+    lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,8 +37,32 @@ class FinishSignUp : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
-
+        progressBar = findViewById(R.id.progressBar)
+        progressBar.visibility = View.GONE
+        val dataActivity: Intent = intent
+        userInfo = dataActivity.getSerializableExtra("person") as Person
+        phoneNumber = dataActivity.getStringExtra("phone")
         termnsTxt = findViewById(R.id.textView10)
+        password = findViewById(R.id.passwordFinishSignUp)
+        signUpBtn = findViewById(R.id.button4)
+        signUpBtn.setOnClickListener {
+            if(validatePassword(password.text.toString())){
+                progressBar.visibility = View.VISIBLE
+                signUpBtn.isEnabled = false
+                val citizen =  hashMapOf<String,String>()
+                citizen["name"] = userInfo.nombre!!
+                citizen["family_name"] = userInfo.apellido1 + userInfo.apellido2
+                citizen["birthdate"] = userInfo.fechaNacimiento!!
+                citizen["phone_number"] = "+506$phoneNumber"
+                Log.e("SignUp", userInfo.cedula + password.text.toString())
+                signUp(userInfo.cedula!!,password.text.toString(),citizen)
+
+            }
+            else {
+                Toast.makeText(this@FinishSignUp,"Ingrese una contraseña correcta", Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
         //Clickeable text
         val ss = SpannableString(resources.getString(R.string.signUpTermsText))
@@ -75,19 +106,41 @@ class FinishSignUp : AppCompatActivity() {
             override fun onResult(result: SignUpResult?) {
                 runOnUiThread {
                     if(!result?.confirmationState!!){
+                        progressBar.visibility = View.GONE
+                        signUpBtn.isEnabled = true
                         Log.e("SignUp", "Requiere confirmación")
+                        Toast.makeText(this@FinishSignUp,"Error al crear la cuenta, intente de nuevo", Toast.LENGTH_SHORT).show()
                     }
                     else{
+                        progressBar.visibility = View.GONE
+                        signUpBtn.isEnabled = true
                         Log.e("SignUp", "Cuenta Creada correctamente")
+                        Toast.makeText(this@FinishSignUp,"Cuenta creada correctamente", Toast.LENGTH_LONG).show()
+                        val intent = Intent(this@FinishSignUp, SignScreen::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@FinishSignUp, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+                        startActivity(intent, option.toBundle())
+                        finish()
                     }
                 }
             }
 
             override fun onError(e: Exception?) {
+                progressBar.visibility = View.GONE
+                signUpBtn.isEnabled = true
                 Log.e("SignUp", e.toString())
+                Toast.makeText(this@FinishSignUp,"Error al crear la cuenta, intente de nuevo", Toast.LENGTH_SHORT).show()
             }
 
         })
+    }
+
+    fun validatePassword(password: String):Boolean{
+        val passPattern : String = "((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!$#@_.+-]).{8,20})"
+        val pattern = Pattern.compile(passPattern)
+        val matcher = pattern.matcher(password)
+        return matcher.matches()
+
     }
 
 }

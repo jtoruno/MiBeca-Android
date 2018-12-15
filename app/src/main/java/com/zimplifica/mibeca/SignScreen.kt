@@ -5,10 +5,9 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.*
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.client.Callback
 import com.amazonaws.mobile.client.results.SignInResult
@@ -23,12 +22,15 @@ class SignScreen : AppCompatActivity() {
     lateinit var signInBtn : Button
     lateinit var user : EditText
     lateinit var password : EditText
+    lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_screen)
         signInBtn = findViewById(R.id.button)
         signUpBtn = findViewById(R.id.signUpTxt)
+        progressBar = findViewById(R.id.progressBar2)
+        progressBar.visibility = View.GONE
         user = findViewById(R.id.editText)
         password = findViewById(R.id.passwordEtxt)
         signUpBtn.setOnClickListener {
@@ -37,11 +39,15 @@ class SignScreen : AppCompatActivity() {
             startActivity(intent, option.toBundle())
         }
         signInBtn.setOnClickListener {
+            user.onEditorAction(EditorInfo.IME_ACTION_DONE)
+            password.onEditorAction(EditorInfo.IME_ACTION_DONE)
             if(user.text.toString()=="" || password.text.toString()==""){
                 val toastError: Toast = Toast.makeText(applicationContext,"Llene los campos requeridos", Toast.LENGTH_SHORT)
                 toastError.show()
             }
             else{
+                signInBtn.isEnabled = false
+                progressBar.visibility = View.VISIBLE
                 signIn(user.text.toString(),password.text.toString())
             }
         }
@@ -53,11 +59,16 @@ class SignScreen : AppCompatActivity() {
                 runOnUiThread {
                     when(result?.signInState){
                         SignInState.DONE -> {
+                            signInBtn.isEnabled = true
+                            progressBar.visibility = View.GONE
                             val intent = Intent(this@SignScreen, Home::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                             val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@SignScreen, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
                             startActivity(intent, option.toBundle())
                         }
                         else -> {
+                            signInBtn.isEnabled = true
+                            progressBar.visibility = View.GONE
                             Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
                         }
 
@@ -66,7 +77,13 @@ class SignScreen : AppCompatActivity() {
             }
 
             override fun onError(e: Exception?) {
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    signInBtn.isEnabled = true
+                    Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
+                }
                 Log.e("SignInScreen", "Sign-in error", e)
+                Log.e("SignInScreen", e?.message.toString())
             }
 
         })

@@ -14,6 +14,9 @@ import java.lang.Exception
 
 
 class MyApp: Application() {
+
+    var global = 12
+
     override fun onCreate() {
         super.onCreate()
         AWSMobileClient.getInstance().initialize(applicationContext, object : Callback<UserStateDetails> {
@@ -22,13 +25,13 @@ class MyApp: Application() {
                 when(result?.userState){
                     UserState.SIGNED_IN-> runOnUiThread{
                         val intent = Intent(applicationContext, Home::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(intent)
 
                     }
                     UserState.SIGNED_OUT -> runOnUiThread {
                         val intent = Intent(applicationContext, SignScreen::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(intent)
                     }
 

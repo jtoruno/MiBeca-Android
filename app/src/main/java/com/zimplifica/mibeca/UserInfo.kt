@@ -49,6 +49,7 @@ class UserInfo : AppCompatActivity() {
 
         nextBtn.setOnClickListener {
             val intent = Intent(this, TakePhone::class.java)
+            intent.putExtra("person",info)
             val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
             startActivity(intent, option.toBundle())
         }

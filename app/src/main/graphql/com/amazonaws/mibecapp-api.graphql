@@ -1,0 +1,32 @@
+query GetDepositsByUser($user:ID!){
+ getDepositsByUser(user:$user){
+    items {
+      pk
+      createdAt
+      depositId
+      accountId
+      depositDate
+      description
+    }
+ }
+}
+
+
+mutation UpdateUserEndpoint( $user: ID! $endpoint: String! $channelType: NotificationsChannel!){
+  updateUserEndpoint(user:$user endpoint: $endpoint channelType:$channelType){
+    	pk
+	    endpoint
+	    channelType
+  }
+}
+
+query GetUserInfo($username: ID!){
+  getUserInfo(username: $username){
+    username
+    name
+    family_name
+    birthdate
+    phone_number
+    phone_number_verified
+  }
+}

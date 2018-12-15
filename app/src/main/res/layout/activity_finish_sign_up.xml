@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:fillViewport="true"
     android:layout_height="match_parent"
     tools:context=".FinishSignUp">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appBarLayout2"
@@ -16,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/white"
-            app:title="Finalizar Registro"></android.support.v7.widget.Toolbar>
+            app:title="Finalizar Registro" />
     </android.support.design.widget.AppBarLayout>
 
     <TextView
@@ -81,6 +88,7 @@
         app:passwordToggleTint="@color/design_default_color_primary_dark">
 
         <EditText
+            android:id="@+id/passwordFinishSignUp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="13"
@@ -103,18 +111,33 @@
         app:layout_constraintTop_toBottomOf="@+id/textInputLayout6" />
 
     <Button
-        android:layout_marginStart="45dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="45dp"
-        android:textColor="@android:color/white"
-        android:background="@drawable/btn_blue"
-        android:textAllCaps="false"
         android:id="@+id/button4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="45dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="45dp"
+        android:background="@drawable/btn_blue"
         android:text="Registrarse"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progressBar" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView10" />
 
-</android.support.constraint.ConstraintLayout>
+    </android.support.constraint.ConstraintLayout>
+
+</ScrollView>

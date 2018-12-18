@@ -2,16 +2,20 @@ package com.zimplifica.mibeca
 
 import android.app.Activity
 import android.app.Application
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v7.app.ActionBarDrawerToggle
 import android.util.Log
 import android.view.MenuItem
+import android.widget.TextView
+import com.amazonaws.GetUserInfoQuery
 import com.amazonaws.UpdateUserEndpointMutation
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
+import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.type.NotificationsChannel
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Response
@@ -23,6 +27,8 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
     val fm = supportFragmentManager
     lateinit var appSyncClient : AWSAppSyncClient
+    lateinit var userTxt : TextView
+    lateinit var signOut : TextView
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -32,15 +38,28 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        userTxt = findViewById(R.id.userTextView)
+        signOut = findViewById(R.id.signOutTxt)
+        signOut.setOnClickListener {
+            println("Click on SignOut")
+            AWSMobileClient.getInstance().signOut()
+            val intent = Intent(this, SignScreen::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            startActivity(intent)
+        }
+
         val homeFragment = HomeFragment()
         fm.beginTransaction().add(R.id.home_frame,homeFragment, "1").commit()
         init()
-        /*
+
         appSyncClient = AWSAppSyncClient.builder()
                 .context(applicationContext)
                 .awsConfiguration(AWSConfiguration(applicationContext))
+                .credentialsProvider(AWSMobileClient.getInstance())
                 .build()
-                */
+
+        userData()
 
     }
 
@@ -51,22 +70,28 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         navigation_view.setNavigationItemSelectedListener(this)
     }
 
-    fun endPoint(endPoint: String){
-        val mutation = UpdateUserEndpointMutation.builder()
-                .user(AWSMobileClient.getInstance().username)
-                .endpoint(endPoint)
-                .channelType(NotificationsChannel.GCM)
+    fun userData(){
+
+        val query = GetUserInfoQuery.builder()
+                .username(AWSMobileClient.getInstance().username)
                 .build()
-        appSyncClient.mutate(mutation).enqueue( object : GraphQLCall.Callback<UpdateUserEndpointMutation.Data>(){
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_FIRST).enqueue( object : GraphQLCall.Callback<GetUserInfoQuery.Data>(){
             override fun onFailure(e: ApolloException) {
-                 Log.e("Home", e.toString())
+                Log.e("ERROR", e.toString())
             }
 
-            override fun onResponse(response: Response<UpdateUserEndpointMutation.Data>) {
-                 Log.i("Home",response.toString())
+            override fun onResponse(response: Response<GetUserInfoQuery.Data>) {
+                Log.i("Home", response.data().toString())
+                runOnUiThread {
+                    if(response.data()!=null){
+                        val name = response.data()?.userInfo?.name() + " " + response.data()?.userInfo?.family_name()
+                        userTxt.text = name
+                    }
+                }
+
             }
 
         })
-
     }
+
 }

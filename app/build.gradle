@@ -47,5 +47,17 @@ dependencies {
 
     //AppSync
     implementation 'com.amazonaws:aws-android-sdk-appsync:2.6.28'
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
+    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+
+    //Notifications
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+
+    implementation 'com.google.firebase:firebase-core:16.0.6'
+    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+
+    implementation 'com.amazonaws:aws-android-sdk-pinpoint:2.9.1'
 
 }
+
+apply plugin: 'com.google.gms.google-services'

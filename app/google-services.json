@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "617210081925",
+    "firebase_url": "https://imfo-32d10.firebaseio.com",
+    "project_id": "imfo-32d10",
+    "storage_bucket": "imfo-32d10.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:617210081925:android:fe8b0b2a9ef74cbd",
+        "android_client_info": {
+          "package_name": "com.zimplifica.mibeca"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "617210081925-723cvab4qssuur2clr8i3hrrn5laec45.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4eZhOVFQsTAcE8bNHFgn3ePwH27W5bss"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

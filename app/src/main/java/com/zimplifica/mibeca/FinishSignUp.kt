@@ -51,7 +51,7 @@ class FinishSignUp : AppCompatActivity() {
                 signUpBtn.isEnabled = false
                 val citizen =  hashMapOf<String,String>()
                 citizen["name"] = userInfo.nombre!!
-                citizen["family_name"] = userInfo.apellido1 + userInfo.apellido2
+                citizen["family_name"] = userInfo.apellido1 + " " + userInfo.apellido2
                 citizen["birthdate"] = userInfo.fechaNacimiento!!
                 citizen["phone_number"] = "+506$phoneNumber"
                 Log.e("SignUp", userInfo.cedula + password.text.toString())

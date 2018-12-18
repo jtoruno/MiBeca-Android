@@ -32,7 +32,7 @@ class DepositAdapter(context: Context): BaseAdapter() {
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         var view  = convertView
-        var holder: ViewHolder? = null
+        var holder: ViewHolder?
         val rowType = getItemViewType(position)
 
         if(view == null){
@@ -40,27 +40,27 @@ class DepositAdapter(context: Context): BaseAdapter() {
             when(rowType){
                 TYPE_ITEM -> {
                     view = mInflater.inflate(R.layout.deposit_row, null)
-                    holder!!.textDescription = view.findViewById(R.id.textView15)
-                    holder!!.textDate = view.findViewById(R.id.textView14)
+                    holder.textDescription = view.findViewById(R.id.textView15)
+                    holder.textDate = view.findViewById(R.id.textView14)
                 }
                 TYPE_HEADER -> {
                     view = mInflater.inflate(R.layout.header_item_mov, null)
-                    holder!!.textDate = view.findViewById(R.id.textSeparator)
+                    holder.textDate = view.findViewById(R.id.textSeparator)
                 }
             }
             view?.tag = holder
 
         }
         else {
-            holder = view?.tag as ViewHolder
+            holder = view.tag as ViewHolder
         }
 
         if(rowType == TYPE_ITEM){
-            holder?.textDate?.text = mData[position].date
-            holder?.textDescription?.text = mData[position].description
+            holder.textDate?.text = mData[position].date
+            holder.textDescription?.text = mData[position].description
         }
         else if(rowType == TYPE_HEADER){
-            holder?.textDate?.text = mData[position].date
+            holder.textDate?.text = mData[position].date
         }
         return view!!
     }

@@ -6,7 +6,7 @@
   "CredentialsProvider": {
     "CognitoIdentity": {
       "Default": {
-        "PoolId": "us-east-1:591c729d-62b7-4af7-9e23-175e19f37432",
+        "PoolId": "us-east-1:d4bb5de0-aa25-4c90-8fbb-f62068eab81c",
         "Region": "us-east-1"
       }
     }
@@ -23,6 +23,17 @@
       "ApiUrl": "https://mkx3kiswwjhuhcre7sejiayjei.appsync-api.us-east-1.amazonaws.com/graphql",
       "Region": "us-east-1",
       "AuthMode": "AWS_IAM"
+    }
+  },
+  "PinpointAnalytics": {
+    "Default": {
+      "AppId" : "49ec0635d3494187a46c5b712fa994fa",
+      "Region": "us-east-1"
+    }
+  },
+  "PinpointTargeting": {
+    "Default": {
+      "Region": "us-east-1"
     }
   }
 }

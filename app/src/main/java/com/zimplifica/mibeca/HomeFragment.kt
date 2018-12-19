@@ -24,6 +24,7 @@ import com.apollographql.apollo.exception.ApolloException
 import com.zimplifica.mibeca.Adapters.DepositAdapter
 import com.zimplifica.mibeca.Adapters.NoAdapter
 import com.zimplifica.mibeca.Utils.Deposit
+import java.util.LinkedHashSet
 
 class HomeFragment : Fragment() {
 
@@ -82,7 +83,7 @@ class HomeFragment : Fragment() {
                 .user(AWSMobileClient.getInstance().username)
                 .build()
 
-        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.NETWORK_ONLY).enqueue(object : GraphQLCall.Callback<GetDepositsByUserQuery.Data>(){
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_AND_NETWORK).enqueue(object : GraphQLCall.Callback<GetDepositsByUserQuery.Data>(){
             override fun onFailure(e: ApolloException) {
                 Log.e("HomeFragment ", "Error", e)
                 runOnUiThread {
@@ -94,9 +95,46 @@ class HomeFragment : Fragment() {
             override fun onResponse(response: Response<GetDepositsByUserQuery.Data>) {
                 println(response.data().toString())
                 runOnUiThread {
+                    val listToPrint = mutableListOf<Deposit>()
+                    val dateList = LinkedHashSet<String>()
                     val list = response.data()?.depositsByUser?.items()
                     if(list!!.isEmpty()){
                         listView.adapter = NoAdapter(activity!!)
+                    }
+                    else{
+                        val iterate = list.iterator()
+                        while (iterate.hasNext()){
+                            val oldValue = iterate.next()
+                            val date = oldValue.depositDate().substring(0,2) + "/" + oldValue.depositDate().substring(2,4) + "/2018"
+                            val deposit = Deposit(date,oldValue.description() + " " + oldValue.depositId())
+                            dateList.add(date)
+                            listToPrint.add(deposit)
+                        }
+
+                        val returnList = mutableListOf<Deposit>()
+                        val adapter = DepositAdapter(activity!!)
+                        val iteratorDate = dateList.iterator()
+
+                        while (iteratorDate.hasNext()){
+                            val oldVale = iteratorDate.next()
+                            val header = Deposit(oldVale, "")
+                            adapter.addHeader(header)
+                            returnList.add(header)
+
+                            val itDeposit = listToPrint.iterator()
+                            while (itDeposit.hasNext()){
+                                val value = itDeposit.next()
+                                val compareDate = value.date
+                                if(compareDate == oldVale){
+                                    adapter.addItem(value)
+                                    returnList.add(value)
+                                }
+                            }
+
+                            Log.d("Deposit Dates", oldVale)
+                        }
+
+                        listView.adapter = adapter
                     }
                     swipeRefresh.isRefreshing = false
                 }

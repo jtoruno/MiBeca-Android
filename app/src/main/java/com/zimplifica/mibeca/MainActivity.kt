@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                         startActivity(intent)
 
                     }
-                    UserState.SIGNED_OUT -> runOnUiThread {
+                    UserState.SIGNED_OUT , UserState.GUEST-> runOnUiThread {
                         val intent = Intent(applicationContext, SignScreen::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(intent)
@@ -64,9 +64,10 @@ class MainActivity : AppCompatActivity() {
         })
 
         //GetPinPointmanager
-        getPinpointManager(applicationContext)
+        pinpointManager = getPinpointManager(applicationContext)
 
     }
+
 
     companion object {
         fun getPinpointManager(applicationContext: Context): PinpointManager {

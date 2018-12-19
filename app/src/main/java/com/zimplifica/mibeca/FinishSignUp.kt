@@ -6,9 +6,7 @@ import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.Toolbar
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.TextPaint
+import android.text.*
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.util.Log
@@ -28,6 +26,10 @@ class FinishSignUp : AppCompatActivity() {
     lateinit var signUpBtn : Button
     lateinit var password : EditText
     lateinit var progressBar: ProgressBar
+    lateinit var img1 : ImageView
+    lateinit var img2 : ImageView
+    lateinit var img3 : ImageView
+    lateinit var img4 : ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +46,10 @@ class FinishSignUp : AppCompatActivity() {
         phoneNumber = dataActivity.getStringExtra("phone")
         termnsTxt = findViewById(R.id.textView10)
         password = findViewById(R.id.passwordFinishSignUp)
+        img1 = findViewById(R.id.imageView4)
+        img2 = findViewById(R.id.imageView5)
+        img3 = findViewById(R.id.imageView6)
+        img4 = findViewById(R.id.imageView7)
         signUpBtn = findViewById(R.id.button4)
         signUpBtn.setOnClickListener {
             if(validatePassword(password.text.toString())){
@@ -62,6 +68,45 @@ class FinishSignUp : AppCompatActivity() {
                 Toast.makeText(this@FinishSignUp,"Ingrese una contraseña correcta", Toast.LENGTH_SHORT).show()
             }
         }
+
+        password.addTextChangedListener(object : TextWatcher{
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val pattern1 =Pattern.compile(".*[A-Z].*")
+                val pattern2 = Pattern.compile(".*\\d.*")
+                val pattern3 = Pattern.compile(".*[!\$#@_.+-].*")
+                val pattern4 = Pattern.compile(".{8,20}")
+
+                if(pattern1.matcher(s).matches()){
+                    img1.setImageResource(R.drawable.check_image)
+                }
+                else{
+                    img1.setImageResource(R.drawable.icon_close)
+                }
+
+                if(pattern2.matcher(s).matches()){
+                    img2.setImageResource(R.drawable.check_image)
+                }
+                else{img2.setImageResource(R.drawable.icon_close)}
+
+                if(pattern3.matcher(s).matches()){
+                    img3.setImageResource(R.drawable.check_image)
+                }
+                else{img3.setImageResource(R.drawable.icon_close)}
+
+                if(pattern4.matcher(s).matches()){
+                    img4.setImageResource(R.drawable.check_image)
+                }
+                else{img4.setImageResource(R.drawable.icon_close)}
+
+            }
+
+        })
 
 
         //Clickeable text

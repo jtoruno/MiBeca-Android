@@ -58,6 +58,10 @@ dependencies {
 
     implementation 'com.amazonaws:aws-android-sdk-pinpoint:2.9.1'
 
+    //LifeCycle
+    implementation "android.arch.lifecycle:extensions:1.1.1"
+    annotationProcessor "android.arch.lifecycle:compiler:1.1.1"
+
 }
 
 apply plugin: 'com.google.gms.google-services'

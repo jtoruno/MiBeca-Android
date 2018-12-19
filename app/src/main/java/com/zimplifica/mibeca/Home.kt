@@ -6,6 +6,7 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.ActionBarDrawerToggle
 import android.util.Log
 import android.view.MenuItem
@@ -16,12 +17,15 @@ import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
+import com.amazonaws.mobileconnectors.pinpoint.PinpointManager
+import com.amazonaws.mobileconnectors.pinpoint.targeting.endpointProfile.EndpointProfileUser
 import com.amazonaws.type.NotificationsChannel
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import kotlinx.android.synthetic.main.activity_home.*
 import kotlinx.android.synthetic.main.app_bar_home.*
+import java.util.*
 
 class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListener{
 
@@ -29,6 +33,10 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
     lateinit var appSyncClient : AWSAppSyncClient
     lateinit var userTxt : TextView
     lateinit var signOut : TextView
+    lateinit var accountInfo : TextView
+    var fullName = ""
+    lateinit var pinPointManager : PinpointManager
+    lateinit var changePassword : TextView
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -39,7 +47,21 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         setContentView(R.layout.activity_home)
 
         userTxt = findViewById(R.id.userTextView)
+
+        pinPointManager = MainActivity.getPinpointManager(applicationContext)
+        changePassword = findViewById(R.id.changepasswordHomeTxt)
+        changePassword.setOnClickListener {
+            val intent = Intent(PushListenerService.ACTION_PUSH_NOTIFICATION)
+            intent.putExtra(PushListenerService.INTENT_SNS_NOTIFICATION_FROM, "PBA Service")
+            //intent.putExtra(PushListenerService.INTENT_SNS_NOTIFICATION_DATA, dataMap)
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        }
         signOut = findViewById(R.id.signOutTxt)
+        accountInfo = findViewById(R.id.accountInfotextView)
+        accountInfo.setOnClickListener {
+            val intent = Intent(this, AccountInfo::class.java)
+            startActivity(intent)
+        }
         signOut.setOnClickListener {
             println("Click on SignOut")
             AWSMobileClient.getInstance().signOut()
@@ -85,13 +107,31 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 runOnUiThread {
                     if(response.data()!=null){
                         val name = response.data()?.userInfo?.name() + " " + response.data()?.userInfo?.family_name()
+                        fullName = name
                         userTxt.text = name
+                        ssignUserIdEndPoint()
                     }
                 }
 
             }
 
         })
+    }
+
+    fun ssignUserIdEndPoint(){
+        val targetingClient = pinPointManager.targetingClient
+        val interests = mutableListOf<String>(fullName)
+        targetingClient.addAttribute("name",interests )
+        targetingClient.updateEndpointProfile()
+
+        val endPointProfile = targetingClient.currentEndpoint()
+        val endPointProfileUser = EndpointProfileUser()
+        endPointProfileUser.userId = AWSMobileClient.getInstance().username
+        endPointProfile.user = endPointProfileUser
+        targetingClient.updateEndpointProfile(endPointProfile)
+        Log.d("Home","Asigned user ID " + endPointProfileUser.userId + " to end point "+ endPointProfile.endpointId )
+
+
     }
 
 }

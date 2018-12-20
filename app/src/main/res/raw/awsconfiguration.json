@@ -6,21 +6,21 @@
   "CredentialsProvider": {
     "CognitoIdentity": {
       "Default": {
-        "PoolId": "us-east-1:d4bb5de0-aa25-4c90-8fbb-f62068eab81c",
+        "PoolId": "us-east-1:e3c98c51-eab3-4b95-bb0a-09efb18e624c",
         "Region": "us-east-1"
       }
     }
   },
   "CognitoUserPool": {
     "Default": {
-      "PoolId": "us-east-1_ekd3FklGw",
-      "AppClientId": "1ckqgrev3jrjatof0g0eql093n",
+      "PoolId": "us-east-1_vt9hMAdQV",
+      "AppClientId": "17l2cre4hknadm96mio8quugvg",
       "Region": "us-east-1"
     }
   },
   "AppSync": {
     "Default": {
-      "ApiUrl": "https://mkx3kiswwjhuhcre7sejiayjei.appsync-api.us-east-1.amazonaws.com/graphql",
+      "ApiUrl": "https://xzjqye73urd7nl6mqiszgl3bbu.appsync-api.us-east-1.amazonaws.com/graphql",
       "Region": "us-east-1",
       "AuthMode": "AWS_IAM"
     }

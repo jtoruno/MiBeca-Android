@@ -212,12 +212,12 @@
                 android:paddingLeft="10dp"
                 android:textStyle="bold"
                 android:textAlignment="viewStart"
-                android:text="Número de Teléfono"/>
+                android:text="Correo Electrónico"/>
             <TextView
                 android:id="@+id/phoneNumberAccountInfo"
                 android:textSize="16sp"
                 android:layout_marginEnd="10dp"
-                android:text="+50688888888"
+                android:text="example@mail.com"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAlignment="viewEnd"/>
@@ -226,7 +226,6 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
-
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

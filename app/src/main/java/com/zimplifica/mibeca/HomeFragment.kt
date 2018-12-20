@@ -24,7 +24,8 @@ import com.apollographql.apollo.exception.ApolloException
 import com.zimplifica.mibeca.Adapters.DepositAdapter
 import com.zimplifica.mibeca.Adapters.NoAdapter
 import com.zimplifica.mibeca.Utils.Deposit
-import java.util.LinkedHashSet
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HomeFragment : Fragment() {
 
@@ -105,9 +106,10 @@ class HomeFragment : Fragment() {
                         val iterate = list.iterator()
                         while (iterate.hasNext()){
                             val oldValue = iterate.next()
-                            val date = oldValue.depositDate().substring(0,2) + "/" + oldValue.depositDate().substring(2,4) + "/2018"
-                            val deposit = Deposit(date,oldValue.description() + " " + oldValue.depositId())
-                            dateList.add(date)
+                            val date = Date(oldValue.createdAt().toLong())
+                            val dateFormat = SimpleDateFormat("dd/MM/yyyy").format(date)
+                            val deposit = Deposit(dateFormat,oldValue.description() + " " + oldValue.depositId())
+                            dateList.add(dateFormat)
                             listToPrint.add(deposit)
                         }
 

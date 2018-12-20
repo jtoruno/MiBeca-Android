@@ -12,14 +12,12 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.TextView
 import com.amazonaws.GetUserInfoQuery
-import com.amazonaws.UpdateUserEndpointMutation
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.pinpoint.PinpointManager
 import com.amazonaws.mobileconnectors.pinpoint.targeting.endpointProfile.EndpointProfileUser
-import com.amazonaws.type.NotificationsChannel
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
@@ -51,10 +49,13 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         pinPointManager = MainActivity.getPinpointManager(applicationContext)
         changePassword = findViewById(R.id.changepasswordHomeTxt)
         changePassword.setOnClickListener {
+
+            /*
             val intent = Intent(PushListenerService.ACTION_PUSH_NOTIFICATION)
             intent.putExtra(PushListenerService.INTENT_SNS_NOTIFICATION_FROM, "PBA Service")
             //intent.putExtra(PushListenerService.INTENT_SNS_NOTIFICATION_DATA, dataMap)
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+            */
         }
         signOut = findViewById(R.id.signOutTxt)
         accountInfo = findViewById(R.id.accountInfotextView)
@@ -107,7 +108,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 runOnUiThread {
                     if(response.data()!=null){
                         val name = response.data()?.userInfo?.name() + " " + response.data()?.userInfo?.family_name()
-                        fullName = name
+                        fullName = response.data()?.userInfo?.name()!!
                         userTxt.text = name
                         ssignUserIdEndPoint()
                     }
@@ -117,6 +118,8 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
         })
     }
+
+
 
     fun ssignUserIdEndPoint(){
         val targetingClient = pinPointManager.targetingClient

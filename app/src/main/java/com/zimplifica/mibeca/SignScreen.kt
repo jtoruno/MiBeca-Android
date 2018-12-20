@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.*
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.client.Callback
 import com.amazonaws.mobile.client.results.SignInResult
@@ -23,6 +24,7 @@ class SignScreen : AppCompatActivity() {
     lateinit var user : EditText
     lateinit var password : EditText
     lateinit var progressBar: ProgressBar
+    lateinit var forgotPassBtn : TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +32,7 @@ class SignScreen : AppCompatActivity() {
         signInBtn = findViewById(R.id.button)
         signUpBtn = findViewById(R.id.signUpTxt)
         progressBar = findViewById(R.id.progressBar2)
+        forgotPassBtn = findViewById(R.id.textView4)
         progressBar.visibility = View.GONE
         user = findViewById(R.id.editText)
         password = findViewById(R.id.passwordEtxt)
@@ -51,6 +54,12 @@ class SignScreen : AppCompatActivity() {
                 signIn(user.text.toString(),password.text.toString())
             }
         }
+
+        forgotPassBtn.setOnClickListener {
+            val intent = Intent(this@SignScreen, ForgotPass1::class.java)
+            val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@SignScreen, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+            startActivity(intent, option.toBundle())
+        }
     }
 
     fun signIn(userName : String, password : String){
@@ -67,6 +76,7 @@ class SignScreen : AppCompatActivity() {
                             startActivity(intent, option.toBundle())
                         }
                         else -> {
+                            Log.e("SignIn",result?.signInState.toString())
                             signInBtn.isEnabled = true
                             progressBar.visibility = View.GONE
                             Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
@@ -80,10 +90,26 @@ class SignScreen : AppCompatActivity() {
                 runOnUiThread {
                     progressBar.visibility = View.GONE
                     signInBtn.isEnabled = true
-                    Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
+
+                    val exception = e as AmazonServiceException
+                    when(exception.errorCode){
+                        "UserNotConfirmedException" ->{
+                            val intent = Intent(this@SignScreen, VerifyCode::class.java)
+                            intent.putExtra("userName",userName)
+                            intent.putExtra("password",password)
+                            val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@SignScreen, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+                            startActivity(intent, option.toBundle())
+                        }
+                        else -> {
+                            Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
                 Log.e("SignInScreen", "Sign-in error", e)
                 Log.e("SignInScreen", e?.message.toString())
+
+
             }
 
         })

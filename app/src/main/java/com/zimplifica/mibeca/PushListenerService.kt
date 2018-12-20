@@ -23,12 +23,16 @@ class PushListenerService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
         Log.e(TAG, "Message: " + remoteMessage!!.data)
 
+        //val intent = Intent(applicationContext, MainActivity::class.java)
+        //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+
         val notificationClient = MainActivity.getPinpointManager(applicationContext).notificationClient
 
         val notificationDetails = NotificationDetails.builder()
                 .from(remoteMessage.from)
                 .mapData(remoteMessage.data)
                 .intentAction(NotificationClient.FCM_INTENT_ACTION)
+                //.intent(intent)
                 .build()
 
         val pushResult = notificationClient.handleCampaignPush(notificationDetails)

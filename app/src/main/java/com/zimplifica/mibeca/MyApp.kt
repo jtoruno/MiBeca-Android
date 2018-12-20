@@ -50,6 +50,7 @@ class MyApp: Application() {
                 println(cn)
 
                 val m = Intent(this@MyApp, FragmentTryActivity::class.java)
+                m.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(m)
 
                 //showDialog(baseContext)

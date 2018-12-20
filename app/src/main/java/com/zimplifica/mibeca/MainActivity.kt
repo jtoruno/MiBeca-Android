@@ -88,6 +88,7 @@ class MainActivity : AppCompatActivity() {
                         AWSMobileClient.getInstance(),
                         AWSMobileClient.getInstance().configuration)
 
+
                 val pinpointManager = PinpointManager(pinpointConfig)
 
                 FirebaseInstanceId.getInstance().instanceId

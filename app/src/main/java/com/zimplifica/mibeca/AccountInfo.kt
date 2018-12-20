@@ -65,7 +65,7 @@ class AccountInfo : AppCompatActivity() {
                         lastName.text = response.data()!!.userInfo.family_name()
                         idNumber.text = response.data()!!.userInfo.username()
                         birthDate.text = response.data()!!.userInfo.birthdate()
-                        phoneNumber.text = response.data()!!.userInfo.phone_number()
+                        phoneNumber.text = response.data()!!.userInfo.email()
                     }
                 }
 

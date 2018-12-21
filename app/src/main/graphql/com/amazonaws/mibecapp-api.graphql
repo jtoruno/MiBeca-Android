@@ -1,22 +1,35 @@
 query GetDepositsByUser($user:ID!){
- getDepositsByUser(user:$user){
-    items {
-      pk
-      createdAt
-      depositId
-      accountId
-      depositDate
-      description
-    }
+getDepositsByUser(user:$user){
+   items {
+     pk
+     createdAt
+     depositId
+     accountId
+     depositDate
+     description
+   }
+  }
+}
+
+mutation AddSubscription($username: ID! $input: CitizenSubscriptionInput! ){
+ subscribeBeneficiary(username: $username input: $input ){
+   pk
+   citizenId
  }
 }
-query GetUserInfo($username: ID!){
-  getUserInfo(username: $username){
-    username
-    name
-    family_name
-    birthdate
-    email
-    email_verified
-  }
+
+query ListSubscriptions($username: ID!) {
+ getSubscriptionsByUser(username: $username){
+   items{
+     pk
+     citizenId
+   }
+ }
+}
+
+mutation DeleteSubscription($username: ID! $citizenId: String!) {
+ unSubscribeBeneficiary(username: $username citizenId: $citizenId){
+   pk
+   citizenId
+ }
 }

@@ -12,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ListView
-import com.amazonaws.GetDepositsByUserQuery
 import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
@@ -71,14 +70,14 @@ class HomeFragment : Fragment() {
 
         swipeRefresh.setOnRefreshListener {
             println("refresh")
-            queryDeposits()
+            //queryDeposits()
         }
 
-        queryDeposits()
+        //queryDeposits()
 
         return view
     }
-
+    /*
     fun queryDeposits(){
         val query = GetDepositsByUserQuery.builder()
                 .user(AWSMobileClient.getInstance().username)
@@ -144,5 +143,6 @@ class HomeFragment : Fragment() {
 
         })
     }
+    */
 
 }

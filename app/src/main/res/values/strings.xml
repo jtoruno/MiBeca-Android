@@ -5,8 +5,12 @@
         se muestra en la imagen superior. El escaner detectará la información de tu
         cédula automáticamente.
     </string>
-    <string name="barcodeinfo">Por favor enfoque en el recuadro el código de barras ubicado en la parte posterior de su cédula de identidad</string>
-    <string name="signUpTermsText">Al presionar \'Crear Cuenta\' aceptas los Términos y Condiciones y las Políticas de Privacidad.</string>
+    <string name="barcodeinfo">Por favor enfoque en el recuadro el código de barras ubicado en la parte posterior de su
+        cédula de identidad
+    </string>
+    <string name="signUpTermsText">Al presionar \'Crear Cuenta\' aceptas los Términos y Condiciones y las Políticas de
+        Privacidad.
+    </string>
     <string name="nav_open">Open Navigation Drawer</string>
     <string name="nav_close">Close Navigation Drawer</string>
 

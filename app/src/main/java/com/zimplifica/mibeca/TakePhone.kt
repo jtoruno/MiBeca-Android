@@ -26,10 +26,8 @@ class TakePhone : AppCompatActivity() {
     lateinit var nextBtn : Button
     lateinit var info : Person
     lateinit var email : EditText
-    lateinit var progressBar: ProgressBar
+    //lateinit var progressBar: ProgressBar
     private var password = ""
-    lateinit var termnsTxt : TextView
-    lateinit var errorTxt : TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,21 +36,18 @@ class TakePhone : AppCompatActivity() {
 
 
 
-        val dataActivity: Intent = intent
-        info = dataActivity.getSerializableExtra("person") as Person
-        password = dataActivity.getStringExtra("password")
+        //val dataActivity: Intent = intent
+        //info = dataActivity.getSerializableExtra("person") as Person
+        //password = dataActivity.getStringExtra("password")
 
-        progressBar = findViewById(R.id.progressBar3)
-        progressBar.visibility = View.GONE
+        //progressBar = findViewById(R.id.progressBar3)
+        //progressBar.visibility = View.GONE
 
         val toolbar : Toolbar = findViewById(R.id.toolbar_take_phone)
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
         nextBtn = findViewById(R.id.button5)
-        termnsTxt = findViewById(R.id.textView17)
-        errorTxt = findViewById(R.id.textView18)
-        errorTxt.visibility = View.GONE
         nextBtn.isEnabled = false
 
         email.addTextChangedListener(object : TextWatcher{
@@ -67,45 +62,26 @@ class TakePhone : AppCompatActivity() {
         })
 
         nextBtn.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
-            nextBtn.isEnabled = false
+            //progressBar.visibility = View.VISIBLE
+            //nextBtn.isEnabled = false
+            /*
             val citizen =  hashMapOf<String,String>()
             citizen["name"] = info.nombre!!
             citizen["family_name"] = info.apellido1 + " " + info.apellido2
             citizen["birthdate"] = info.fechaNacimiento!!
             citizen["email"] = email.text.toString()
             Log.e("SignUp", info.cedula + password)
-            signUp(info.cedula!!,password,citizen)
+            //signUp(info.cedula!!,password,citizen)
+            */
 
+            val intent = Intent(this, FinishSignUp::class.java)
+            intent.putExtra("email",email.text.toString())
+            //intent.putExtra("password", password.text.toString())
+            //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+            startActivity(intent, option.toBundle())
         }
 
-
-        //Clickeable text
-        val ss = SpannableString(resources.getString(R.string.signUpTermsText))
-        val clickableSpan = object : ClickableSpan() {
-            override fun onClick(textView: View) {
-            }
-
-            override fun updateDrawState(ds: TextPaint) {
-                super.updateDrawState(ds)
-                ds.isUnderlineText = true
-            }
-        }
-
-        val clickableSpanPrivacity = object : ClickableSpan() {
-            override fun onClick(textView: View) {
-            }
-
-            override fun updateDrawState(ds: TextPaint) {
-                super.updateDrawState(ds)
-                ds.isUnderlineText = true
-            }
-        }
-        ss.setSpan(clickableSpan,40,62, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        ss.setSpan(clickableSpanPrivacity,69,92, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        termnsTxt.setText(ss)
-        termnsTxt.movementMethod = LinkMovementMethod.getInstance()
-        termnsTxt.highlightColor = Color.TRANSPARENT
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -116,6 +92,8 @@ class TakePhone : AppCompatActivity() {
     override fun onBackPressed() {
         finish()
     }
+
+    /*
 
     fun signUp(userName : String, password : String,attributes : HashMap<String, String> ){
         AWSMobileClient.getInstance().signUp(userName,password,attributes, null, object : Callback<SignUpResult> {
@@ -166,6 +144,7 @@ class TakePhone : AppCompatActivity() {
 
         })
     }
+    */
 
 
     //Fun for validate a valid phone with a specific pattern

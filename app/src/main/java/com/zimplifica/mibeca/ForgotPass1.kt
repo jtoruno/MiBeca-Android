@@ -8,7 +8,9 @@ import android.support.v7.widget.Toolbar
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.util.Patterns
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.client.Callback
@@ -19,7 +21,7 @@ import java.lang.Exception
 
 class ForgotPass1 : AppCompatActivity() {
 
-    lateinit var idNumber : MaskEditText
+    lateinit var idNumber : EditText
     lateinit var nextBtn : Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,13 +45,13 @@ class ForgotPass1 : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                nextBtn.isEnabled = s?.length == 11
+                nextBtn.isEnabled = Patterns.EMAIL_ADDRESS.matcher(s).matches()
             }
         })
 
         nextBtn.setOnClickListener {
             nextBtn.isEnabled = false
-            forgotPass(idNumber.rawText!!.toString())
+            forgotPass(idNumber.text.toString())
         }
 
     }

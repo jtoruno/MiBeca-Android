@@ -37,7 +37,7 @@ class SignScreen : AppCompatActivity() {
         user = findViewById(R.id.editText)
         password = findViewById(R.id.passwordEtxt)
         signUpBtn.setOnClickListener {
-            val intent = Intent(this, IdIndications::class.java)
+            val intent = Intent(this, TakePhone::class.java)
             val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
             startActivity(intent, option.toBundle())
         }

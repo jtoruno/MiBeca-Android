@@ -28,7 +28,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="8dp"
-        android:text="Por favor ingrese su número de identificación"
+        android:text="Por favor ingrese su correo electrónico"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout6" />
@@ -44,15 +44,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView19">
 
-        <com.zimplifica.mibeca.Utils.MaskEditText
+        <EditText
             android:id="@+id/idNumberForgotpass"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Cédula"
-            android:inputType="number"
-            android:maxLength="11"
-            android:textAlignment="center"
-            app:met_mask="# #### ####" />
+            android:hint="Correo Electrónico"
+            android:inputType="textEmailAddress"
+        />
     </android.support.design.widget.TextInputLayout>
 
     <Button

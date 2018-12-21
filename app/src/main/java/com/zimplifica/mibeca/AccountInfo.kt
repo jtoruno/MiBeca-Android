@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.widget.TextView
-import com.amazonaws.GetUserInfoQuery
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
@@ -16,27 +15,31 @@ import com.apollographql.apollo.exception.ApolloException
 
 class AccountInfo : AppCompatActivity() {
 
-    lateinit var appSyncClient : AWSAppSyncClient
-    lateinit var name : TextView
-    lateinit var lastName : TextView
-    lateinit var idNumber : TextView
-    lateinit var birthDate : TextView
+    //lateinit var appSyncClient : AWSAppSyncClient
+    //lateinit var name : TextView
+    //lateinit var lastName : TextView
+    //lateinit var idNumber : TextView
+    //lateinit var birthDate : TextView
     lateinit var phoneNumber : TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account_info)
 
-        name = findViewById(R.id.nameAccountInfo)
-        lastName = findViewById(R.id.LastnameAccountInfo)
-        idNumber = findViewById(R.id.idNumberAccountInfo)
-        birthDate = findViewById(R.id.birthDateAccountInfo)
+        //name = findViewById(R.id.nameAccountInfo)
+        //lastName = findViewById(R.id.LastnameAccountInfo)
+        //idNumber = findViewById(R.id.idNumberAccountInfo)
+        //birthDate = findViewById(R.id.birthDateAccountInfo)
         phoneNumber = findViewById(R.id.phoneNumberAccountInfo)
+
+        phoneNumber.text = AWSMobileClient.getInstance().username
 
         val toolbar : Toolbar = findViewById(R.id.account_info_toolbar)
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
+
+        /*
 
         appSyncClient = AWSAppSyncClient.builder()
                 .context(applicationContext)
@@ -45,7 +48,10 @@ class AccountInfo : AppCompatActivity() {
                 .build()
 
         userData()
+        */
     }
+
+    /*
 
     fun userData(){
 
@@ -73,6 +79,7 @@ class AccountInfo : AppCompatActivity() {
 
         })
     }
+    */
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()

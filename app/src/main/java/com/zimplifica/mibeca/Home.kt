@@ -11,7 +11,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.util.Log
 import android.view.MenuItem
 import android.widget.TextView
-import com.amazonaws.GetUserInfoQuery
+
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
@@ -46,6 +46,8 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
         userTxt = findViewById(R.id.userTextView)
 
+        userTxt.text = AWSMobileClient.getInstance().username
+
         pinPointManager = MainActivity.getPinpointManager(applicationContext)
         changePassword = findViewById(R.id.changepasswordHomeTxt)
         changePassword.setOnClickListener {
@@ -72,7 +74,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
             startActivity(intent)
         }
 
-        val homeFragment = HomeFragment()
+        val homeFragment = HomeFragment2()
         fm.beginTransaction().add(R.id.home_frame,homeFragment, "1").commit()
         init()
 
@@ -82,7 +84,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 .credentialsProvider(AWSMobileClient.getInstance())
                 .build()
 
-        userData()
+        //userData()
 
     }
 
@@ -92,7 +94,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         toggle.syncState()
         navigation_view.setNavigationItemSelectedListener(this)
     }
-
+    /*
     fun userData(){
 
         val query = GetUserInfoQuery.builder()
@@ -118,6 +120,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
         })
     }
+    */
 
 
 

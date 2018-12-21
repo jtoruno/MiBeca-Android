@@ -12,6 +12,7 @@ import android.text.style.ClickableSpan
 import android.util.Log
 import android.view.View
 import android.widget.*
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.client.Callback
 import com.amazonaws.mobile.client.results.SignUpResult
@@ -21,15 +22,18 @@ import java.util.regex.Pattern
 
 class FinishSignUp : AppCompatActivity() {
     //lateinit var termnsTxt : TextView
-    lateinit var userInfo : Person
+    //lateinit var userInfo : Person
     //lateinit var phoneNumber : String
+    lateinit var errorTxt : TextView
     lateinit var signUpBtn : Button
     lateinit var password : EditText
-    //lateinit var progressBar: ProgressBar
+    lateinit var termnsTxt : TextView
+    lateinit var progressBar: ProgressBar
     lateinit var img1 : ImageView
     lateinit var img2 : ImageView
     lateinit var img3 : ImageView
     lateinit var img4 : ImageView
+    var emailAdress = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,13 +43,17 @@ class FinishSignUp : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
-        //progressBar = findViewById(R.id.progressBar)
-        //progressBar.visibility = View.GONE
+        progressBar = findViewById(R.id.progressBar3)
+        errorTxt = findViewById(R.id.textView22)
+        errorTxt.visibility = View.GONE
+        progressBar.visibility = View.GONE
         val dataActivity: Intent = intent
-        userInfo = dataActivity.getSerializableExtra("person") as Person
+        emailAdress = dataActivity.getStringExtra("email")
+        //userInfo = dataActivity.getSerializableExtra("person") as Person
         //phoneNumber = dataActivity.getStringExtra("phone")
         //termnsTxt = findViewById(R.id.textView10)
         password = findViewById(R.id.passwordFinishSignUp)
+        termnsTxt = findViewById(R.id.textView21)
         img1 = findViewById(R.id.imageView4)
         img2 = findViewById(R.id.imageView5)
         img3 = findViewById(R.id.imageView6)
@@ -53,13 +61,8 @@ class FinishSignUp : AppCompatActivity() {
         signUpBtn = findViewById(R.id.button4)
         signUpBtn.setOnClickListener {
             if(validatePassword(password.text.toString())){
-                val intent = Intent(this, TakePhone::class.java)
-                intent.putExtra("person",userInfo)
-                intent.putExtra("password", password.text.toString())
-                //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
-                val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
-                startActivity(intent, option.toBundle())
-
+                signUpBtn.isEnabled = false
+                signUp(emailAdress,password.text.toString())
             }
             else {
                 Toast.makeText(this@FinishSignUp,"Ingrese una contraseña correcta", Toast.LENGTH_SHORT).show()
@@ -104,6 +107,34 @@ class FinishSignUp : AppCompatActivity() {
             }
 
         })
+
+
+        //Clickeable text
+        val ss = SpannableString(resources.getString(R.string.signUpTermsText))
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(textView: View) {
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = true
+            }
+        }
+
+        val clickableSpanPrivacity = object : ClickableSpan() {
+            override fun onClick(textView: View) {
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = true
+            }
+        }
+        ss.setSpan(clickableSpan,40,62, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        ss.setSpan(clickableSpanPrivacity,69,92, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        termnsTxt.setText(ss)
+        termnsTxt.movementMethod = LinkMovementMethod.getInstance()
+        termnsTxt.highlightColor = Color.TRANSPARENT
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -121,6 +152,56 @@ class FinishSignUp : AppCompatActivity() {
         val matcher = pattern.matcher(password)
         return matcher.matches()
 
+    }
+
+    fun signUp(userName : String, password : String ){
+        AWSMobileClient.getInstance().signUp(userName,password,hashMapOf<String,String>(), null, object : Callback<SignUpResult> {
+            override fun onResult(result: SignUpResult?) {
+                runOnUiThread {
+                    Log.e("SignUp", result?.confirmationState.toString())
+                    if(!result?.confirmationState!!){
+                        progressBar.visibility = View.GONE
+                        signUpBtn.isEnabled = true
+                        Log.e("SignUp", "Requiere confirmación")
+                        val intent = Intent(this@FinishSignUp, VerifyCode::class.java)
+                        intent.putExtra("userName",emailAdress)
+                        intent.putExtra("password",password)
+                        val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@FinishSignUp, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+                        startActivity(intent, option.toBundle())
+                    }
+                    else{
+                        progressBar.visibility = View.GONE
+                        signUpBtn.isEnabled = true
+                        Log.e("SignUp", "Cuenta Creada correctamente")
+                        Toast.makeText(this@FinishSignUp,"Cuenta creada correctamente", Toast.LENGTH_LONG).show()
+                        val intent = Intent(this@FinishSignUp, SignScreen::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@FinishSignUp, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+                        startActivity(intent, option.toBundle())
+                        finish()
+                    }
+                }
+            }
+
+            override fun onError(e: Exception?) {
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    signUpBtn.isEnabled = true
+                    Log.e("SignUp", e.toString())
+                    //Toast.makeText(this@TakePhone,"Error al crear la cuenta, intente de nuevo", Toast.LENGTH_SHORT).show()
+                    val exception = e as AmazonServiceException
+                    when(exception.errorCode){
+                        "UsernameExistsException" -> {
+                            errorTxt.visibility = View.VISIBLE
+                            errorTxt.postDelayed(Runnable { errorTxt.setVisibility(View.GONE) }, 5000)
+                        }
+                    }
+
+                }
+
+            }
+
+        })
     }
 
 }

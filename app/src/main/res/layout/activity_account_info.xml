@@ -46,6 +46,8 @@
 
         </TableRow>
 
+        <!--
+
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -197,6 +199,8 @@
                 android:background="@color/backgroundProfile"
                 android:padding="2dip" />
         </TableRow>
+
+        -->
 
         <TableRow
             android:layout_width="match_parent"

@@ -1,0 +1,56 @@
+# this is an auto generated file. This will be overwritten
+query UploadsList($count: Int, $nextToken: String) {
+  uploadsList(count: $count, nextToken: $nextToken) {
+    items {
+      pk
+      fileName
+      createdAt
+      status
+    }
+    nextToken
+  }
+}
+query DepositsList($count: Int, $nextToken: String) {
+  depositsList(count: $count, nextToken: $nextToken) {
+    items {
+      pk
+      createdAt
+      depositId
+      accountId
+      depositDate
+      description
+      origin
+    }
+    nextToken
+  }
+}
+query GetUserInfo {
+  getUserInfo {
+    username
+    email
+  }
+}
+query GetSubscriptions($count: Int, $nextToken: String) {
+  getSubscriptions(count: $count, nextToken: $nextToken) {
+    items {
+      pk
+      citizenId
+      createdAt
+    }
+    nextToken
+  }
+}
+query GetDepositsByBeneficiary($citizenId: String!) {
+  getDepositsByBeneficiary(citizenId: $citizenId) {
+    items {
+      pk
+      createdAt
+      depositId
+      accountId
+      depositDate
+      description
+      origin
+    }
+    nextToken
+  }
+}

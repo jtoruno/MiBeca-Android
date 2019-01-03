@@ -26,9 +26,10 @@ class HomeFragment2 : Fragment() {
         recyclerView = view.findViewById(R.id.RecyclerViewFragment)
 
         val list = mutableListOf<UserData>()
-        list.add(UserData("1 1650 0454"))
-        list.add(UserData("1 1652 1234"))
-        list.add(UserData("1 1657 9999"))
+        list.add(UserData("116500454"))
+        list.add(UserData("116521234"))
+        list.add(UserData("115650399"))
+        list.add(UserData("116579999"))
         val adapter = IdAdapter(activity!!,R.layout.layout_id_row,list)
         recyclerView.adapter = adapter
         return view

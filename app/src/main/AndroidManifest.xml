@@ -20,9 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-
-        <receiver android:name="com.amazonaws.mobileconnectors.pinpoint.targeting.notification.PinpointNotificationReceiver"
-            android:exported="false" >
+        <receiver
+            android:name="com.amazonaws.mobileconnectors.pinpoint.targeting.notification.PinpointNotificationReceiver"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.amazonaws.intent.fcm.NOTIFICATION_OPEN" />
             </intent-filter>
@@ -94,13 +94,16 @@
             android:name=".FragmentTryActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Dialog" />
-        <activity android:name=".VerifyCode"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".ForgotPass1"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".VerifyCode"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ForgotPass1"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ForgotPass2"
             android:screenOrientation="portrait" />
+        <activity android:name=".DepositsByUser"></activity>
     </application>
 
 </manifest>

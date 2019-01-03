@@ -17,6 +17,7 @@ import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
+import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
@@ -63,7 +64,16 @@ class HomeFragment : Fragment() {
         appSyncClient = AWSAppSyncClient.builder()
                 .context(activity)
                 .awsConfiguration(AWSConfiguration(activity))
-                .credentialsProvider(AWSMobileClient.getInstance())
+                .cognitoUserPoolsAuthProvider(object : CognitoUserPoolsAuthProvider{
+                    override fun getLatestAuthToken(): String {
+                        return try {
+                            AWSMobileClient.getInstance().tokens.idToken.tokenString
+                        } catch (e: Exception) {
+                            Log.e("APPSYNC_ERROR", e.localizedMessage)
+                            e.localizedMessage
+                        }
+                    }
+                })
                 .build()
 
         swipeRefresh = view.findViewById(R.id.swipeRefresh)

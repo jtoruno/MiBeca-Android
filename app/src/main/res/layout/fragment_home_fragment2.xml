@@ -6,26 +6,10 @@
              tools:context=".HomeFragment2">
 
 
-    <Button
-            android:background="@android:color/transparent"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            android:textColor="@color/colorAccent"
-            android:text="Añadir"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true" android:layout_marginEnd="15dp" android:id="@+id/button11"
-            android:layout_marginTop="14dp"/>
-    <TextView
-            android:text="Usuarios Suscritos"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_alignParentStart="true"
-            android:layout_marginStart="43dp" android:layout_alignParentTop="true" android:id="@+id/textView18"
-            android:layout_marginTop="32dp"/>
     <ListView
-            android:id="@+id/RecyclerViewFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_marginTop="27dp" android:layout_below="@+id/button11" android:layout_marginStart="0dp"/>
+        android:id="@+id/RecyclerViewFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="0dp" />
 </RelativeLayout>

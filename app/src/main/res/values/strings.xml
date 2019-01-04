@@ -16,4 +16,14 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    
+    <string name="WelcomeDescription">Esta aplicación es un esfuerzo del Banco Nacional de Costa Rica por mantener informados
+    a los beneficiarios del IMAS y FONABE.</string>
+
+    <string name="DepositDescription">Por medio de notificaciones te informaremos de nuevos depósitos asociados a los beneficiarios
+    que tengas suscritos.</string>
+
+    <string name="CitizenDescription">Al suscribirte a un beneficiario, podrás consultar sus últimos depósitos.</string>
+
+
 </resources>

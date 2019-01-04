@@ -32,6 +32,7 @@ class IdAdapter(var mCtx : Context, var resource : Int, var items : List<UserDat
             intent.putExtra("idUser",mItems.id)
             //val option : ActivityOptions = ActivityOptions.makeCustomAnimation(mCtx, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
             mCtx.startActivity(intent)
+
         }
 
 

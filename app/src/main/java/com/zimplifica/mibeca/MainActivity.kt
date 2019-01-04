@@ -16,9 +16,7 @@ import android.support.annotation.NonNull
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 import com.amazonaws.mobileconnectors.pinpoint.PinpointConfiguration
-
-
-
+import com.zimplifica.mibeca.WalkThrough.WalkThrough
 
 
 class MainActivity : AppCompatActivity() {
@@ -47,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
                     }
                     UserState.SIGNED_OUT , UserState.GUEST-> runOnUiThread {
-                        val intent = Intent(applicationContext, SignScreen::class.java)
+                        val intent = Intent(applicationContext, WalkThrough::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(intent)
                     }

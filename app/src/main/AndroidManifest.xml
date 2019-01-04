@@ -103,7 +103,11 @@
         <activity
             android:name=".ForgotPass2"
             android:screenOrientation="portrait" />
-        <activity android:name=".DepositsByUser"></activity>
+        <activity android:name=".DepositsByUser"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".WalkThrough.WalkThrough"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

@@ -3,17 +3,23 @@ package com.zimplifica.mibeca
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.v4.app.FragmentManager
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.ActionBarDrawerToggle
 import android.text.InputType
+import android.text.Layout
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.MenuItem
+import android.view.View
 import android.widget.*
 import com.amazonaws.GetUserInfoQuery
+import com.amazonaws.SubscribeBeneficiaryMutation
 import com.amazonaws.UpdateEndpointAttributesMutation
 
 import com.amazonaws.mobile.client.AWSMobileClient
@@ -27,6 +33,7 @@ import com.amazonaws.type.EndpointAction
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import com.zimplifica.mibeca.WalkThrough.WalkThrough
 import kotlinx.android.synthetic.main.activity_home.*
 import kotlinx.android.synthetic.main.app_bar_home.*
 import java.util.*
@@ -43,6 +50,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
     lateinit var pinPointManager : PinpointManager
     lateinit var changePassword : TextView
     lateinit var addBtn : ImageButton
+
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -79,24 +87,38 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
             updateEndPointAttri(endPointId, EndpointAction.signOut)
             println("Click on SignOut")
             AWSMobileClient.getInstance().signOut()
-            val intent = Intent(this, SignScreen::class.java)
+            val intent = Intent(this, WalkThrough::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
         }
 
         addBtn.setOnClickListener {
-            Toast.makeText(this,"Agregar",Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this,"Agregar",Toast.LENGTH_SHORT).show()
             val builder = AlertDialog.Builder(this)
             builder.setTitle("Suscribir Beneficiario")
             builder.setMessage("Ingrese el número de cédula del beneficiario")
+            /*
             val input = EditText(this)
             input.setEms(10)
             input.hint = "Ejemplo: 123456789"
             input.inputType = InputType.TYPE_CLASS_NUMBER
             builder.setView(input)
+            */
+            val view = LayoutInflater.from(this).inflate(R.layout.input_dialog_id,null)
+            val input : EditText = view.findViewById(R.id.citizenIdTxt)
+            builder.setView(view)
             builder.setPositiveButton("Suscribir"){
                 dialog, which ->
+                println(input.text.toString())
+                if(input.text.toString().length==9){
+                    //Toast.makeText(this,"Agregar",Toast.LENGTH_SHORT).show()
+                    addCitizenId(input.text.toString())
+
+                }
+                else{
+                    Toast.makeText(this, "Ingrese datos correctos", Toast.LENGTH_SHORT).show()
+                }
             }
             builder.setNegativeButton("Cancelar"){
                 dialog, which ->
@@ -140,6 +162,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.NETWORK_ONLY).enqueue( object : GraphQLCall.Callback<GetUserInfoQuery.Data>(){
             override fun onFailure(e: ApolloException) {
                 Log.e("ERROR", e.toString())
+
             }
 
             override fun onResponse(response: Response<GetUserInfoQuery.Data>) {
@@ -157,8 +180,62 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        val code = getStringFromSp(this,"refreshFragmentCode")
+        if(code!= null){
+            if(code=="200"){
+                val settings = this.getSharedPreferences("SP", Activity.MODE_PRIVATE)
+                settings.edit().remove("refreshFragmentCode").apply()
+                reloadFragment()
+
+            }
+        }
+    }
 
 
+    fun addCitizenId(citizenId : String){
+        val mutation = SubscribeBeneficiaryMutation.builder()
+                .citizenId(citizenId)
+                .build()
+        appSyncClient.mutate(mutation).enqueue(object : GraphQLCall.Callback<SubscribeBeneficiaryMutation.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("ERROR", e.toString())
+                runOnUiThread {
+                    Toast.makeText(this@Home, "Ha ocurrido un error agregando Beneficiario, intente de nuevo.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(response: Response<SubscribeBeneficiaryMutation.Data>) {
+                println(response.data().toString())
+                runOnUiThread {
+
+                    fm.popBackStackImmediate(null,FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                    val homeFragment = HomeFragment2()
+                    fm.beginTransaction().replace(R.id.home_frame,homeFragment, "1").commit()
+                }
+
+            }
+
+        })
+    }
+
+    fun saveStringInSp(ctx: Context, key: String, value: String) {
+        val editor = ctx.getSharedPreferences("SP", Activity.MODE_PRIVATE).edit()
+        editor.putString(key, value)
+        editor.apply()
+    }
+
+    fun getStringFromSp(ctx: Context, key: String): String? {
+        val sharedPreferences = ctx.getSharedPreferences("SP", Activity.MODE_PRIVATE)
+        return sharedPreferences.getString(key, null)
+    }
+
+    fun reloadFragment(){
+        fm.popBackStackImmediate(null,FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        val homeFragment = HomeFragment2()
+        fm.beginTransaction().replace(R.id.home_frame,homeFragment, "1").commit()
+    }
 
     fun signUserIdEndPoint(){
         val targetingClient = pinPointManager.targetingClient

@@ -1,10 +1,13 @@
 package com.zimplifica.mibeca
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.FragmentManager
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.Toolbar
 import android.util.Log
@@ -38,6 +41,7 @@ class DepositsByUser : AppCompatActivity() {
     lateinit var spinnerDialog : Dialog
     lateinit var deleteBtn : Button
     var userId = ""
+    val fm = supportFragmentManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,7 +119,14 @@ class DepositsByUser : AppCompatActivity() {
             }
 
             override fun onResponse(response: Response<UnsubscribeBeneficiaryMutation.Data>) {
-                println(response.data())
+                Log.e("DepositsByUser",response.data().toString())
+                spinnerDialog.dismiss()
+                runOnUiThread {
+                    saveStringInSp(this@DepositsByUser, "refreshFragmentCode", "200")
+                }
+                onBackPressed()
+
+                /*
                 if (response.data() != null){
                     onBackPressed()
                 }
@@ -125,10 +136,16 @@ class DepositsByUser : AppCompatActivity() {
                         Toast.makeText(this@DepositsByUser, "Error al eliminar subscripción",Toast.LENGTH_SHORT).show()
                     }
 
-                }
+                }*/
             }
 
         })
+    }
+
+    fun saveStringInSp(ctx: Context, key: String, value: String) {
+        val editor = ctx.getSharedPreferences("SP", Activity.MODE_PRIVATE).edit()
+        editor.putString(key, value)
+        editor.apply()
     }
 
     fun depositsByUser(id : String){

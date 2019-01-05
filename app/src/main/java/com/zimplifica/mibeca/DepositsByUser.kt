@@ -29,11 +29,17 @@ import com.apollographql.apollo.exception.ApolloException
 import com.zimplifica.mibeca.Adapters.DepositAdapter
 import com.zimplifica.mibeca.Adapters.NoAdapter
 import com.zimplifica.mibeca.Adapters.NoAdapterDeposit
+import com.zimplifica.mibeca.NewArq.Beneficiary
+import com.zimplifica.mibeca.NewArq.BeneficiaryDatabase
+import com.zimplifica.mibeca.NewArq.DbWorkerThread
 import com.zimplifica.mibeca.Utils.Deposit
 import java.text.SimpleDateFormat
 import java.util.*
 
 class DepositsByUser : AppCompatActivity() {
+
+    private lateinit var mDbWorkerThread: DbWorkerThread
+    private var mDb : BeneficiaryDatabase? = null
 
     lateinit var listView : ListView
     lateinit var appSyncClient : AWSAppSyncClient
@@ -70,18 +76,10 @@ class DepositsByUser : AppCompatActivity() {
 
 
         appSyncClient = AWSAppSyncClient.builder()
-                .context(applicationContext)
-                .awsConfiguration(AWSConfiguration(applicationContext))
-                .cognitoUserPoolsAuthProvider(object : CognitoUserPoolsAuthProvider {
-                    override fun getLatestAuthToken(): String {
-                        return try {
-                            AWSMobileClient.getInstance().tokens.idToken.tokenString
-                        } catch (e: Exception) {
-                            Log.e("APPSYNC_ERROR", e.localizedMessage)
-                            e.localizedMessage
-                        }
-                    }
-                }).build()
+                .context(this)
+                .awsConfiguration(AWSConfiguration(this))
+                .credentialsProvider(AWSMobileClient.getInstance())
+                .build()
 
         swipeRefresh.setOnRefreshListener {
             depositsByUser(userId)
@@ -103,6 +101,10 @@ class DepositsByUser : AppCompatActivity() {
             }
             dialog.show()
         }
+
+        mDbWorkerThread = DbWorkerThread("dbWorkerThread")
+        mDbWorkerThread.start()
+        mDb = BeneficiaryDatabase.getInstance(this)
     }
 
     fun DeleteSubscription(userNameId : String){
@@ -124,7 +126,13 @@ class DepositsByUser : AppCompatActivity() {
                 runOnUiThread {
                     saveStringInSp(this@DepositsByUser, "refreshFragmentCode", "200")
                 }
+                val oldValue = response?.data()?.unsubscribeBeneficiary()
+                if (oldValue!=null){
+                    val task = Runnable { mDb?.beneficiaryDao()?.deleteBeneficiary(Beneficiary(oldValue.pk(), oldValue.citizenId(), oldValue.createdAt())) }
+                    mDbWorkerThread.postTask(task)
+                }
                 onBackPressed()
+
 
                 /*
                 if (response.data() != null){

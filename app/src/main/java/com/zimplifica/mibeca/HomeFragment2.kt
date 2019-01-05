@@ -1,11 +1,17 @@
 package com.zimplifica.mibeca
 
 import android.app.Activity
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,12 +31,19 @@ import com.apollographql.apollo.exception.ApolloException
 import com.zimplifica.mibeca.Adapters.IdAdapter
 import com.zimplifica.mibeca.Adapters.NoAdapter
 import com.zimplifica.mibeca.Adapters.UserData
+import com.zimplifica.mibeca.NewArq.*
+import java.util.*
 
 
 class HomeFragment2 : Fragment() {
-    lateinit var recyclerView: ListView
+    private lateinit var mDbWorkerThread: DbWorkerThread
+    lateinit var recyclerView: RecyclerView
     lateinit var appSyncClient : AWSAppSyncClient
     lateinit var swipeRefresh : SwipeRefreshLayout
+
+    lateinit var mAdapter : BeneficiaryListAdapter
+    lateinit var viewModel : BeneficiaryViewModel
+    private var mDb : BeneficiaryDatabase? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,6 +54,9 @@ class HomeFragment2 : Fragment() {
         val view = inflater.inflate(R.layout.fragment_home_fragment2, container, false)
         recyclerView = view.findViewById(R.id.RecyclerViewFragment)
         swipeRefresh = view.findViewById(R.id.swiperefreshlayoutHomeFragment)
+
+        mDbWorkerThread = DbWorkerThread("dbWorkerThread")
+        mDbWorkerThread.start()
 
         /*
         val list = mutableListOf<UserData>()
@@ -54,24 +70,56 @@ class HomeFragment2 : Fragment() {
         appSyncClient = AWSAppSyncClient.builder()
                 .context(activity)
                 .awsConfiguration(AWSConfiguration(activity))
-                .cognitoUserPoolsAuthProvider(object : CognitoUserPoolsAuthProvider {
-                    override fun getLatestAuthToken(): String {
-                        return try {
-                            AWSMobileClient.getInstance().tokens.idToken.tokenString
-                        } catch (e: Exception) {
-                            Log.e("APPSYNC_ERROR", e.localizedMessage)
-                            e.localizedMessage
-                        }
-                    }
-                }).build()
+                .credentialsProvider(AWSMobileClient.getInstance())
+                .build()
 
-        getSubscriptions()
+        //getSubscriptions()
         swipeRefresh.setOnRefreshListener {
-            getSubscriptions()
+            //getSubscriptions()
         }
+
+        mDb = BeneficiaryDatabase.getInstance(activity!!)
+        /*
+        val task = Runnable { mDb?.beneficiaryDao()?.deleteAll() }
+        mDbWorkerThread.postTask(task)
+        */
+
+
+
+        viewModel = ViewModelProviders.of(this, MyViewModelFactory(activity!!)).get(BeneficiaryViewModel::class.java)
+        viewModel.getBeneficiary().observe(this, Observer {
+            Log.e("Size ", it?.size.toString())
+            mAdapter.setBeneficiaries(it?: emptyList())
+        })
+        recyclerView.setHasFixedSize(true)
+        val layoutManager = LinearLayoutManager(activity)
+        recyclerView.layoutManager = layoutManager
+        val list = mutableListOf<Beneficiary>()
+        mAdapter = BeneficiaryListAdapter(list){
+            val intent = Intent(activity, DepositsByUser::class.java)
+            intent.putExtra("idUser",it.citizenId)
+            //val option : ActivityOptions = ActivityOptions.makeCustomAnimation(mCtx, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+            startActivity(intent)
+            //val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(UUID.randomUUID().toString(), "123456789","123")) }
+            //mDbWorkerThread.postTask(task)
+
+        }
+        val divider = DividerItemDecoration(recyclerView.context,layoutManager.orientation)
+        recyclerView.addItemDecoration(divider)
+        recyclerView.adapter = mAdapter
+
+
         return view
     }
 
+    override fun onDestroy() {
+        mDbWorkerThread.quit()
+        BeneficiaryDatabase.destroyInstance()
+        super.onDestroy()
+    }
+
+
+    /*
     fun getSubscriptions(){
         val query = GetSubscriptionsQuery.builder().build()
         appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.NETWORK_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
@@ -119,5 +167,7 @@ class HomeFragment2 : Fragment() {
         })
 
     }
+    */
+
 
 }

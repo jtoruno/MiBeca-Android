@@ -33,12 +33,18 @@ import com.amazonaws.type.EndpointAction
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
+import com.zimplifica.mibeca.NewArq.Beneficiary
+import com.zimplifica.mibeca.NewArq.BeneficiaryDatabase
+import com.zimplifica.mibeca.NewArq.DbWorkerThread
 import com.zimplifica.mibeca.WalkThrough.WalkThrough
 import kotlinx.android.synthetic.main.activity_home.*
 import kotlinx.android.synthetic.main.app_bar_home.*
 import java.util.*
 
 class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListener{
+
+    private lateinit var mDbWorkerThread: DbWorkerThread
+    private var mDb : BeneficiaryDatabase? = null
 
     val fm = supportFragmentManager
     lateinit var appSyncClient : AWSAppSyncClient
@@ -132,20 +138,16 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         init()
 
         appSyncClient = AWSAppSyncClient.builder()
-                .context(applicationContext)
-                .awsConfiguration(AWSConfiguration(applicationContext))
-                .cognitoUserPoolsAuthProvider(object : CognitoUserPoolsAuthProvider {
-                    override fun getLatestAuthToken(): String {
-                        return try {
-                            AWSMobileClient.getInstance().tokens.idToken.tokenString
-                        } catch (e: Exception) {
-                            Log.e("APPSYNC_ERROR", e.localizedMessage)
-                            e.localizedMessage
-                        }
-                    }
-                }).build()
+                .context(this)
+                .awsConfiguration(AWSConfiguration(this))
+                .credentialsProvider(AWSMobileClient.getInstance())
+                .build()
 
         userData()
+        mDbWorkerThread = DbWorkerThread("dbWorkerThread")
+        mDbWorkerThread.start()
+        mDb = BeneficiaryDatabase.getInstance(this)
+
 
     }
 
@@ -187,7 +189,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
             if(code=="200"){
                 val settings = this.getSharedPreferences("SP", Activity.MODE_PRIVATE)
                 settings.edit().remove("refreshFragmentCode").apply()
-                reloadFragment()
+                //reloadFragment()
 
             }
         }
@@ -209,10 +211,17 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
             override fun onResponse(response: Response<SubscribeBeneficiaryMutation.Data>) {
                 println(response.data().toString())
                 runOnUiThread {
-
+                    /*
                     fm.popBackStackImmediate(null,FragmentManager.POP_BACK_STACK_INCLUSIVE)
                     val homeFragment = HomeFragment2()
                     fm.beginTransaction().replace(R.id.home_frame,homeFragment, "1").commit()
+                    */
+                    val oldValue = response?.data()?.subscribeBeneficiary()
+                    if (oldValue!=null){
+                        val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(oldValue.pk(), oldValue.citizenId(), oldValue.createdAt())) }
+                        mDbWorkerThread.postTask(task)
+                    }
+
                 }
 
             }

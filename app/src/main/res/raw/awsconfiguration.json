@@ -22,7 +22,7 @@
     "Default": {
       "ApiUrl": "https://6v5xs3dom5efnic5rqtqie3wsu.appsync-api.us-east-1.amazonaws.com/graphql",
       "Region": "us-east-1",
-      "AuthMode": "AMAZON_COGNITO_USER_POOLS"
+      "AuthMode": "AWS_IAM"
     }
   },
   "PinpointAnalytics": {

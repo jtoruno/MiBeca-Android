@@ -19,6 +19,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ListView
 import com.amazonaws.GetSubscriptionsQuery
+import com.amazonaws.UpdateNewDepositsStateMutation
 import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
@@ -76,6 +77,7 @@ class HomeFragment2 : Fragment() {
         //getSubscriptions()
         swipeRefresh.setOnRefreshListener {
             //getSubscriptions()
+            swipeRefresh.isRefreshing= false
         }
 
         mDb = BeneficiaryDatabase.getInstance(activity!!)
@@ -96,6 +98,9 @@ class HomeFragment2 : Fragment() {
         recyclerView.layoutManager = layoutManager
         val list = mutableListOf<Beneficiary>()
         mAdapter = BeneficiaryListAdapter(list){
+            if(it.hasNewDeposits){
+                updateDepositState(it.citizenId, false)
+            }
             val intent = Intent(activity, DepositsByUser::class.java)
             intent.putExtra("idUser",it.citizenId)
             //val option : ActivityOptions = ActivityOptions.makeCustomAnimation(mCtx, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
@@ -117,6 +122,29 @@ class HomeFragment2 : Fragment() {
         BeneficiaryDatabase.destroyInstance()
         super.onDestroy()
     }
+
+    fun updateDepositState(citizenId : String, state : Boolean){
+        val mutation = UpdateNewDepositsStateMutation.builder()
+                .citizenId(citizenId)
+                .hasNewDeposits(state)
+                .build()
+        appSyncClient.mutate(mutation).enqueue(object: GraphQLCall.Callback<UpdateNewDepositsStateMutation.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("HomeFragment", e.toString())
+            }
+
+            override fun onResponse(response: Response<UpdateNewDepositsStateMutation.Data>) {
+                val oldValue = response?.data()?.updateNewDepositsState()
+                if (oldValue!=null){
+                    val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
+                    mDbWorkerThread.postTask(task)
+                }
+            }
+
+        })
+    }
+
+
 
 
     /*

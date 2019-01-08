@@ -1,0 +1,70 @@
+Estimado beneficiario gracias por descargar IMFOBN, el Banco Nacional de Costa Rica en adelante BNCR, Instituto Mixto de Ayuda Social en adelante IMAS y el Fondo Nacional de Becas en adelante FONABE; le dan la más cordial bienvenida.
+Esta plataforma tecnológica tiene como objetivo notificarle e informarle oportunamente cuando reciba un depósito por parte del IMAS o FONABE así como cualquier otra información que el BNCR, IMAS y FONABE consideren necesario.
+
+Disposiciones de uso
+
+• Términos y Condiciones (T&C): Corresponden a aquellos términos, condiciones, obligaciones y directrices que rigen el uso de la aplicación móvil IMFOBN.
+
+• Aplicación móvil o App: Programa informático diseñado para ser ejecutado en ser ejecutado en teléfonos inteligentes y otros dispositivos móviles.
+
+• Plataforma tecnológica: Conjunto de componentes de hardware y software y otras tecnologías que permiten ejecutar una aplicación compatible.
+
+• Beneficiario: Persona física que recibe una ayuda económica por parte de las instituciones IMAS o FONABE.
+
+• Subscripción: Inscripción y registro de un usuario a IMFOBN.
+
+• Usuario: Subscriptor de la App IMFOBN y que travez de la misma puede agregar beneficiarios, consultar y recibir notificaciones de los depósitos recibidos de parte de las instituciones IMAS o FONABE hacia los beneficiarios agregados por el usuario.
+
+• Cuenta de usuario: Repositorio de información gestionado por IMFOBN, en el cual se almacena la información de los depósitos recibidos por  uno o mas beneficiarios relacionados a un usuario en específico.
+
+
+Conceptos y definiciones
+
+Para hacer uso del servicio de IMFOBN usted como usuario deberá:
+
+• Aceptar y estar de acuerdo con este contrato de Términos y Condiciones de Uso de lo contrario no podrá hacerlo.
+• Ser beneficiario o tutor encargado de un beneficiario menor de edad de las instituciones IMAS o FONABE.
+• Contar con un teléfono inteligente con sistema operativo Android o iOS y además cumpla con los requerimientos técnicos mínimos requeridos para utilizar la App, los cuales pueden ser modificados en cualquier momento por de IMFOBN.
+• Descargar la aplicación de IMFOBN en la tienda de aplicaciones según el sistema operativo de su teléfono inteligente (Android o iOS). **La descarga de la aplicación IMFOBN es gratuita.
+• Registrarse en IMFOBN proporcionando su correo electrónico una contraseña que cumpla con las disposiciones de seguridad establecidas por IMFOBN. ** El registro en IMFOBN  es gratuito.
+• Verificar su cuenta de usuario ingresando un código de verificación que IMFOBN le enviará al correo electrónico que usted ha proporcionado en el proceso de registro. **Una vez su cuenta haya sido verificada podrá navegar en la aplicación.
+• Agregar al menos un beneficiario para que IMFOBN le mantenga informado sobre transacciones de depósito recibidas así como notificarle algún otro tipo de información que el  BNCR, IMAS o FONABE requieran hacerle llegar.
+•Cumplir las disposiciones de seguridad establecidas por IMFOBN en el contrato de POLÍTICAS DE PRIVACIDAD es inherente al contrato de TÉRMINOS Y CONDICIONES DE USO.
+
+
+Privacidad de la información
+
+El BNCR, IMAS y FONABE podrán hacer uso de esta plataforma para notificarle y enviarle información que consideren relevante.
+La seguridad y confidencialidad e integridad de su información es muy importante para El BNCR, IMAS y FONABE, consulte la POLITICA DE PRIVACIDAD para obtener más información.
+
+
+Fallas y continuidad del el servicio
+
+• Usted como usuario de IMFOBN reconoce que pueden existir fallas en la continuidad del servicio y funcionalidad de la App y que estas pueden estar bajo o fuera del control de IMFOBN. Sin embargo IMFOBN se compromete a velar por la continuidad y estabilidad del servicio así como la corrección a la mayor brevedad posible de cualquier falla que afecte el funcionamiento de la App.
+• Ante fallas en el servicio de internet o presencia de alguna dificultad en los dispositivos de los usuarios IMFOBN no se hace responsable sobre la continuidad del servicio de la App.
+• Usted como usuario no podrá atribuirle ninguna responsabilidad o exigir ningún pago a IMFOBN atribuible a la continuidad del servicio, dificultad técnica o falla en alguna funcionalidad de la App.
+
+
+Derechos de autor y propiedad intelectual
+
+• Todo el contenido digital (logos, imágenes sonidos, manuales, banners, notificaciones, videos etc.) en las App es propiedad de IMFOBN  o de los aliados o instituciones relacionadas a IMFOBN. Estos contenidos están protegidos bajo la ley de propiedad intelectual en vigencia.
+
+
+Comunicaciones
+
+• IMFOBN le podría contactar en cualquier momento y sin previo aviso para confirmar datos, transacciones, entre otros, con el objetivo de brindarle el mejor servicio de atención.
+• IMFOBN no garantiza que el intercambio digital  de datos entre IMFOBN y los usuarios vía correo electrónico o algún otro medio de comunicación electrónica estén libres de virus informático o cualquier otro artefacto malicioso.
+• Los usuarios eximen de toda responsabilidad y cualquier intento de lucro a IMFOBN ante cualquier daño directo, indirecto o accidental atribuible a uso de los servicios brindados por IMFOBN  o cualquier intercambio de datos entre IMFOBN y los usuarios tales como perdida de datos, daños a dispositivos electrónicos, suplantación de identidad, robo de información así como cualquier daño psicológico o mental.
+• IMFOBN NUNCA LE SOLICITARA POR NINGÚN MEDIO INFORMACIÓN SENSIBLE COMO CONTRASEÑAS, NÚMEROS DE TARJETAS DE CREDITO O DEBITO Y NÚMEROS DE CUENTA BANCARIA.
+
+
+Comunicaciones
+
+• Con el fin de brindar un mejor servicio  IMFOBN   pondrá a disposición de los usuarios actualizaciones manuales y automáticas sin aviso o notificaciones previas a los mismos.
+• Usted como usuario entiende y se compromete a mantener actualizada la App IMFOBN para obtener una mejor experiencia de uso.
+
+
+Permisos
+
+• Al hacer uso de IMFOBN  usted como usuario entiende reconoce que podríamos requerir de algunos permisos en sus dispositivos móviles. La mayoría de estos dispositivos le  permiten gestionar estos permisos en la sección de configuración del dispositivo.
+

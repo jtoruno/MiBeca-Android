@@ -33,14 +33,20 @@ class BeneficiaryListAdapter(val beneficiary : List<Beneficiary>,val callback: (
     override fun onBindViewHolder(p0: BeneficiaryViewHolder, p1: Int) {
         val data = mBeneficiaries[p1]
         p0.text.text = data.citizenId
+        if(!mBeneficiaries[p1].hasNewDeposits){
+            p0.newText.visibility = View.GONE
+        }
+        else{
+            p0.newText.visibility = View.VISIBLE
+        }
         p0.itemView.setOnClickListener {
             Log.e("PBA","CLICKED "+itemCount)
             callback(mBeneficiaries[p1])
-
         }
     }
 
     class BeneficiaryViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
         var text: TextView = itemView.findViewById(R.id.textView17)
+        var newText = itemView.findViewById<TextView>(R.id.textView24)
     }
 }

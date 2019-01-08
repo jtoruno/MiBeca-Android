@@ -1,35 +1,20 @@
 # this is an auto generated file. This will be overwritten
-mutation UploadFile($input: UploadInput!, $file: S3ObjectInput) {
-  uploadFile(input: $input, file: $file) {
-    pk
-    fileName
-    createdAt
-    status
-    file {
-      bucket
-      key
-      region
-    }
-  }
-}
-mutation BroadcastNotification($title: String!, $body: String) {
-  broadcastNotification(title: $title, body: $body) {
-    success
-    message
-  }
-}
 mutation SubscribeBeneficiary($citizenId: String!) {
   subscribeBeneficiary(citizenId: $citizenId) {
+    id
     pk
     citizenId
     createdAt
+    hasNewDeposits
   }
 }
 mutation UnsubscribeBeneficiary($citizenId: String!) {
   unsubscribeBeneficiary(citizenId: $citizenId) {
+    id
     pk
     citizenId
     createdAt
+    hasNewDeposits
   }
 }
 mutation UpdateEndpointAttributes(
@@ -39,5 +24,37 @@ mutation UpdateEndpointAttributes(
   updateEndpointAttributes(endpointId: $endpointId, action: $action) {
     success
     message
+  }
+}
+mutation UpdateSubscription(
+  $username: String!
+  $citizenId: String!
+  $hasNewDeposits: Boolean!
+) {
+  updateSubscription(
+    username: $username
+    citizenId: $citizenId
+    hasNewDeposits: $hasNewDeposits
+  ) {
+    id
+    pk
+    citizenId
+    createdAt
+    hasNewDeposits
+  }
+}
+mutation UpdateNewDepositsState(
+  $citizenId: String!
+  $hasNewDeposits: Boolean!
+) {
+  updateNewDepositsState(
+    citizenId: $citizenId
+    hasNewDeposits: $hasNewDeposits
+  ) {
+    id
+    pk
+    citizenId
+    createdAt
+    hasNewDeposits
   }
 }

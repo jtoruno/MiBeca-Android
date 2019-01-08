@@ -18,13 +18,12 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import com.amazonaws.GetUserInfoQuery
-import com.amazonaws.SubscribeBeneficiaryMutation
-import com.amazonaws.UpdateEndpointAttributesMutation
+import com.amazonaws.*
 
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
+import com.amazonaws.mobileconnectors.appsync.AppSyncSubscriptionCall
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.amazonaws.mobileconnectors.pinpoint.PinpointManager
@@ -56,6 +55,8 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
     lateinit var pinPointManager : PinpointManager
     lateinit var changePassword : TextView
     lateinit var addBtn : ImageButton
+    lateinit var termsAndConditions : TextView
+    lateinit var privacyPolicy : TextView
 
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
@@ -70,8 +71,19 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
         //userTxt.text = AWSMobileClient.getInstance().username
 
+        termsAndConditions = findViewById(R.id.terms_and_conditions_txt)
+        privacyPolicy = findViewById(R.id.privacy_policy_txt)
+
         pinPointManager = MainActivity.getPinpointManager(applicationContext)
         changePassword = findViewById(R.id.changepasswordHomeTxt)
+        termsAndConditions.setOnClickListener {
+            val intent = Intent(this, TermsAndConditions::class.java)
+            startActivity(intent)
+        }
+        privacyPolicy.setOnClickListener {
+            val intent = Intent(this, PrivacyPolicy::class.java)
+            startActivity(intent)
+        }
         changePassword.setOnClickListener {
 
             /*
@@ -173,7 +185,9 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                     if(response.data()!=null){
                         uuidUserName = response.data()?.userInfo?.username()
                         signUserIdEndPoint()
-
+                        onSubscribeToAdd(uuidUserName!!)
+                        onSubscribeToDelete(uuidUserName!!)
+                        onSubscribeToDeposits(uuidUserName!!)
                     }
                 }
 
@@ -218,7 +232,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                     */
                     val oldValue = response?.data()?.subscribeBeneficiary()
                     if (oldValue!=null){
-                        val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(oldValue.pk(), oldValue.citizenId(), oldValue.createdAt())) }
+                        val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
                         mDbWorkerThread.postTask(task)
                     }
 
@@ -275,6 +289,79 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
             override fun onResponse(response: Response<UpdateEndpointAttributesMutation.Data>) {
                 Log.d("Home UpdateEndPoint", response.data()?.updateEndpointAttributes().toString())
+            }
+
+        })
+    }
+
+    fun onSubscribeToAdd(username : String){
+        val subscribe = SubscribeToAddBeneficiarySubscription.builder()
+                .pk(username)
+                .build()
+        appSyncClient.subscribe(subscribe).execute(object : AppSyncSubscriptionCall.Callback<SubscribeToAddBeneficiarySubscription.Data>{
+            override fun onFailure(e: ApolloException) {
+                Log.e("Error", e.toString())
+            }
+
+            override fun onResponse(response: Response<SubscribeToAddBeneficiarySubscription.Data>) {
+                val oldValue = response?.data()?.subscribeToAddBeneficiary()
+                if (oldValue!=null){
+                    val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
+                    mDbWorkerThread.postTask(task)
+                }
+            }
+
+            override fun onCompleted() {
+                Log.i("Completed", "Subscription completed")
+            }
+
+        })
+    }
+
+    fun onSubscribeToDelete(username: String){
+        val subscribe = SubscribeToDeleteBeneficiarySubscription.builder()
+                .pk(username)
+                .build()
+        appSyncClient.subscribe(subscribe).execute(object : AppSyncSubscriptionCall.Callback<SubscribeToDeleteBeneficiarySubscription.Data>{
+            override fun onFailure(e: ApolloException) {
+                Log.e("Error", e.toString())
+            }
+
+            override fun onResponse(response: Response<SubscribeToDeleteBeneficiarySubscription.Data>) {
+                val oldValue = response?.data()?.subscribeToDeleteBeneficiary()
+                if (oldValue!=null){
+                    val task = Runnable { mDb?.beneficiaryDao()?.deleteById(oldValue.citizenId()) }
+                    mDbWorkerThread.postTask(task)
+                }
+            }
+
+            override fun onCompleted() {
+                Log.i("Completed", "Subscription completed")
+            }
+
+        })
+    }
+
+    fun onSubscribeToDeposits(username: String){
+        val subscribe = SubscribeToNewDepositsSubscription.builder()
+                .pk(username)
+                .build()
+        appSyncClient.subscribe(subscribe).execute(object : AppSyncSubscriptionCall.Callback<SubscribeToNewDepositsSubscription.Data>{
+            override fun onFailure(e: ApolloException) {
+                Log.e("Error", e.toString())
+            }
+
+            override fun onResponse(response: Response<SubscribeToNewDepositsSubscription.Data>) {
+                val oldValue = response?.data()?.subscribeToNewDeposits()
+                if (oldValue!=null){
+                    Log.e("Home", "SubscribeDepositupdate")
+                    val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
+                    mDbWorkerThread.postTask(task)
+                }
+            }
+
+            override fun onCompleted() {
+                Log.i("Completed", "Subscription completed")
             }
 
         })

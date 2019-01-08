@@ -128,7 +128,7 @@ class DepositsByUser : AppCompatActivity() {
                 }
                 val oldValue = response?.data()?.unsubscribeBeneficiary()
                 if (oldValue!=null){
-                    val task = Runnable { mDb?.beneficiaryDao()?.deleteBeneficiary(Beneficiary(oldValue.pk(), oldValue.citizenId(), oldValue.createdAt())) }
+                    val task = Runnable { mDb?.beneficiaryDao()?.deleteById(oldValue.citizenId()) }
                     mDbWorkerThread.postTask(task)
                 }
                 onBackPressed()

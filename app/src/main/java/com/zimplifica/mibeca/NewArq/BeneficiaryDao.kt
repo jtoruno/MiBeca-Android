@@ -1,11 +1,8 @@
 package com.zimplifica.mibeca.NewArq
 
-import android.arch.persistence.room.Dao
-import android.arch.persistence.room.Insert
 import android.arch.persistence.room.OnConflictStrategy.REPLACE
-import android.arch.persistence.room.Query
 import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.Delete
+import android.arch.persistence.room.*
 
 
 @Dao
@@ -22,4 +19,8 @@ interface BeneficiaryDao {
     fun deleteAll()
     @Delete
     fun deleteBeneficiary(beneficiary: Beneficiary)
+    @Query("DELETE FROM Beneficiary WHERE id = :citizenIdDelete")
+    fun deleteById(citizenIdDelete : String)
+    @Update
+    fun update(beneficiary: Beneficiary)
 }

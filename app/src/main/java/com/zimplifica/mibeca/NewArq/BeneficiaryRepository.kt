@@ -54,7 +54,7 @@ class BeneficiaryRepository  {
 
             override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
                 if(response.hasErrors()){
-                    Log.e(TAG, "onResponse: errors:" + response.errors());
+                    Log.e(TAG, "onResponse: errors:" + response.errors())
                     return
                 }
                 Log.d(TAG, "onResponse: accessing data")
@@ -64,7 +64,7 @@ class BeneficiaryRepository  {
                 val iterate = items.iterator()
                 while (iterate?.hasNext()!!){
                     val oldValue = iterate.next()
-                    list.add(Beneficiary(oldValue.pk(), oldValue.citizenId(), oldValue.createdAt()))
+                    list.add(Beneficiary(oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits()))
                 }
                 /*
                 try {
@@ -78,6 +78,7 @@ class BeneficiaryRepository  {
                     val oldValue = it2.next()
                     Log.e("List to show", oldValue.citizenId)
                 }
+                beneficiaryDao!!.deleteAll()
                 beneficiaryDao!!.saveList(list)
 
             }

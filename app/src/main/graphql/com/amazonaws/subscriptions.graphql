@@ -1,0 +1,28 @@
+# this is an auto generated file. This will be overwritten
+subscription SubscribeToAddBeneficiary($pk: String!) {
+  subscribeToAddBeneficiary(pk: $pk) {
+    id
+    pk
+    citizenId
+    createdAt
+    hasNewDeposits
+  }
+}
+subscription SubscribeToDeleteBeneficiary($pk: String!) {
+  subscribeToDeleteBeneficiary(pk: $pk) {
+    id
+    pk
+    citizenId
+    createdAt
+    hasNewDeposits
+  }
+}
+subscription SubscribeToNewDeposits($pk: String!) {
+  subscribeToNewDeposits(pk: $pk) {
+    id
+    pk
+    citizenId
+    createdAt
+    hasNewDeposits
+  }
+}

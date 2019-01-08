@@ -113,6 +113,8 @@ class FinishSignUp : AppCompatActivity() {
         val ss = SpannableString(resources.getString(R.string.signUpTermsText))
         val clickableSpan = object : ClickableSpan() {
             override fun onClick(textView: View) {
+                val intent = Intent(this@FinishSignUp, TermsAndConditions::class.java)
+                startActivity(intent)
             }
 
             override fun updateDrawState(ds: TextPaint) {
@@ -123,6 +125,8 @@ class FinishSignUp : AppCompatActivity() {
 
         val clickableSpanPrivacity = object : ClickableSpan() {
             override fun onClick(textView: View) {
+                val intent = Intent(this@FinishSignUp, PrivacyPolicy::class.java)
+                startActivity(intent)
             }
 
             override fun updateDrawState(ds: TextPaint) {

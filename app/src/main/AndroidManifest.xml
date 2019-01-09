@@ -109,8 +109,11 @@
         <activity
             android:name=".WalkThrough.WalkThrough"
             android:screenOrientation="portrait" />
-        <activity android:name=".TermsAndConditions" />
-        <activity android:name=".PrivacyPolicy"></activity>
+        <activity android:name=".TermsAndConditions"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".PrivacyPolicy"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

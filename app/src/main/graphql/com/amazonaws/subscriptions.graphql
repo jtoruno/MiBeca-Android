@@ -6,6 +6,7 @@ subscription SubscribeToAddBeneficiary($pk: String!) {
     citizenId
     createdAt
     hasNewDeposits
+    networkStatus
   }
 }
 subscription SubscribeToDeleteBeneficiary($pk: String!) {
@@ -15,6 +16,7 @@ subscription SubscribeToDeleteBeneficiary($pk: String!) {
     citizenId
     createdAt
     hasNewDeposits
+    networkStatus
   }
 }
 subscription SubscribeToNewDeposits($pk: String!) {
@@ -24,5 +26,6 @@ subscription SubscribeToNewDeposits($pk: String!) {
     citizenId
     createdAt
     hasNewDeposits
+    networkStatus
   }
 }

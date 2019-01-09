@@ -29,8 +29,13 @@ import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.amazonaws.mobileconnectors.pinpoint.PinpointManager
 import com.amazonaws.mobileconnectors.pinpoint.targeting.endpointProfile.EndpointProfileUser
 import com.amazonaws.type.EndpointAction
+import com.amazonaws.type.NetworkStatus
 import com.apollographql.apollo.GraphQLCall
+import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Response
+import com.apollographql.apollo.api.ResponseField
+import com.apollographql.apollo.cache.normalized.CacheKey
+import com.apollographql.apollo.cache.normalized.CacheKeyResolver
 import com.apollographql.apollo.exception.ApolloException
 import com.zimplifica.mibeca.NewArq.Beneficiary
 import com.zimplifica.mibeca.NewArq.BeneficiaryDatabase
@@ -153,6 +158,25 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 .context(this)
                 .awsConfiguration(AWSConfiguration(this))
                 .credentialsProvider(AWSMobileClient.getInstance())
+                .resolver(object : CacheKeyResolver(){
+                    private fun formatCacheKey(id : String?): CacheKey{
+                        return if (id == null || id.isEmpty()){
+                            CacheKey.NO_KEY
+                        } else{
+                            CacheKey.from(id)
+                        }
+                    }
+                    override fun fromFieldRecordSet(field: ResponseField, recordSet: MutableMap<String, Any>): CacheKey {
+
+                        val id =  recordSet["id"] as? String
+                        return formatCacheKey(id)
+                    }
+
+                    override fun fromFieldArguments(field: ResponseField, variables: Operation.Variables): CacheKey {
+                        val id =  field.resolveArgument("id", variables) as String
+                        return formatCacheKey(id)
+                    }
+                })
                 .build()
 
         userData()
@@ -173,7 +197,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
     fun userData(){
         val query = GetUserInfoQuery.builder()
                 .build()
-        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.NETWORK_ONLY).enqueue( object : GraphQLCall.Callback<GetUserInfoQuery.Data>(){
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_FIRST).enqueue( object : GraphQLCall.Callback<GetUserInfoQuery.Data>(){
             override fun onFailure(e: ApolloException) {
                 Log.e("ERROR", e.toString())
 
@@ -199,14 +223,45 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
     override fun onResume() {
         super.onResume()
         val code = getStringFromSp(this,"refreshFragmentCode")
+        val citizenId = getStringFromSp(this,"citizenId")
         if(code!= null){
             if(code=="200"){
+                optimisticWriteDelete(citizenId!!)
+                DeleteSubscription(citizenId!!)
                 val settings = this.getSharedPreferences("SP", Activity.MODE_PRIVATE)
                 settings.edit().remove("refreshFragmentCode").apply()
+                settings.edit().remove("citizenId").apply()
                 //reloadFragment()
 
             }
         }
+    }
+
+    fun optimisticWrite(citizenId: String){
+        val query = GetSubscriptionsQuery.builder()
+                .build()
+        val expected = SubscribeBeneficiaryMutation.SubscribeBeneficiary("CitizenSubscription",
+                citizenId,uuidUserName!!,citizenId,Date().time.toString(),false, NetworkStatus.offline)
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("Home", "Failed to add item ", e)
+            }
+            override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
+                val items = arrayListOf<GetSubscriptionsQuery.Item>()
+                if(response.data() != null){
+                    items.addAll(response.data()!!.subscriptions.items())
+                }
+                items.add(GetSubscriptionsQuery.Item(expected.__typename(),expected.id(),expected.pk(),expected.citizenId(),
+                        expected.createdAt(),expected.hasNewDeposits(), NetworkStatus.offline))
+                //Add to DAO
+                val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(expected.id(), expected.pk(), expected.citizenId(), expected.createdAt(), expected.hasNewDeposits())) }
+                mDbWorkerThread.postTask(task)
+                //////////////////
+                //Overwrite the cache with the new results
+                val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items,null))
+                appSyncClient.store.write(query, data).enqueue(null)
+            }
+        })
     }
 
 
@@ -230,17 +285,20 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                     val homeFragment = HomeFragment2()
                     fm.beginTransaction().replace(R.id.home_frame,homeFragment, "1").commit()
                     */
+                    /*
                     val oldValue = response?.data()?.subscribeBeneficiary()
                     if (oldValue!=null){
                         val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
                         mDbWorkerThread.postTask(task)
                     }
+                    */
 
                 }
 
             }
 
         })
+        optimisticWrite(citizenId)
     }
 
     fun saveStringInSp(ctx: Context, key: String, value: String) {
@@ -362,6 +420,55 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
             override fun onCompleted() {
                 Log.i("Completed", "Subscription completed")
+            }
+
+        })
+    }
+
+    fun optimisticWriteDelete(citizenId: String){
+        val query = GetSubscriptionsQuery.builder()
+                .build()
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("DepositsByUser", "Failed to delete item ", e)
+            }
+            override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
+                val items = arrayListOf<GetSubscriptionsQuery.Item>()
+                if(response.data() != null){
+                    items.addAll(response.data()!!.subscriptions.items())
+                }
+                val iterator = items.iterator()
+                while (iterator.hasNext()){
+                    val oldValue = iterator.next()
+                    if(oldValue.id() == citizenId){
+                        items.remove(oldValue)
+                    }
+                }
+
+                //Add to DAO
+                val task = Runnable { mDb?.beneficiaryDao()?.deleteById(citizenId) }
+                mDbWorkerThread.postTask(task)
+                //////////////////
+                //Overwrite the cache with the new results
+                val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items,null))
+                appSyncClient.store.write(query, data).enqueue(null)
+
+            }
+        })
+    }
+
+
+    fun DeleteSubscription(userNameId : String){
+        val mutation = UnsubscribeBeneficiaryMutation.builder()
+                .citizenId(userNameId)
+                .build()
+        appSyncClient.mutate(mutation).enqueue(object : GraphQLCall.Callback<UnsubscribeBeneficiaryMutation.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("DepositsByUser ", "Error", e)
+            }
+
+            override fun onResponse(response: Response<UnsubscribeBeneficiaryMutation.Data>) {
+                Log.e("DepositsByUser",response.data().toString())
             }
 
         })

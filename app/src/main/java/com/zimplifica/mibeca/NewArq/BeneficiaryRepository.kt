@@ -11,7 +11,11 @@ import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.apollographql.apollo.GraphQLCall
+import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Response
+import com.apollographql.apollo.api.ResponseField
+import com.apollographql.apollo.cache.normalized.CacheKey
+import com.apollographql.apollo.cache.normalized.CacheKeyResolver
 import com.apollographql.apollo.exception.ApolloException
 import java.text.ParseException
 import javax.inject.Singleton
@@ -31,8 +35,32 @@ class BeneficiaryRepository  {
                 .context(context)
                 .awsConfiguration(AWSConfiguration(context))
                 .credentialsProvider(AWSMobileClient.getInstance())
+                .resolver(object : CacheKeyResolver(){
+
+                    private fun formatCacheKey(id : String?): CacheKey{
+                        return if (id == null || id.isEmpty()){
+                            CacheKey.NO_KEY
+                        } else{
+                            CacheKey.from(id)
+                        }
+                    }
+
+                    override fun fromFieldRecordSet(field: ResponseField, recordSet: MutableMap<String, Any>): CacheKey {
+
+                        val id =  recordSet["id"] as? String
+                        return formatCacheKey(id)
+                    }
+
+                    override fun fromFieldArguments(field: ResponseField, variables: Operation.Variables): CacheKey {
+                        val id =  field.resolveArgument("id", variables) as String
+                        return formatCacheKey(id)
+                    }
+
+                })
                 .build()
     }
+
+
 
     fun getBeneficiaries() : LiveData<List<Beneficiary>> {
 

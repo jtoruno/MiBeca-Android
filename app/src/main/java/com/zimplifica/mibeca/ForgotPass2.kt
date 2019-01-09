@@ -9,6 +9,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.client.Callback
@@ -23,6 +24,11 @@ class ForgotPass2 : AppCompatActivity() {
     lateinit var password : EditText
     lateinit var code : EditText
 
+    lateinit var img1 : ImageView
+    lateinit var img2 : ImageView
+    lateinit var img3 : ImageView
+    lateinit var img4 : ImageView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_forgot_pass2)
@@ -31,6 +37,11 @@ class ForgotPass2 : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
+
+        img1 = findViewById(R.id.imageView2)
+        img2 = findViewById(R.id.imageView3)
+        img3 = findViewById(R.id.imageView8)
+        img4 = findViewById(R.id.imageView9)
 
         nextBtn = findViewById(R.id.button9)
         password = findViewById(R.id.passForgotEdtxt)
@@ -56,6 +67,45 @@ class ForgotPass2 : AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 nextBtn.isEnabled = s?.length == 6
+            }
+
+        })
+
+        password.addTextChangedListener(object : TextWatcher{
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val pattern1 =Pattern.compile(".*[A-Z].*")
+                val pattern2 = Pattern.compile(".*\\d.*")
+                val pattern3 = Pattern.compile(".*[!\$#@_.+-].*")
+                val pattern4 = Pattern.compile(".{8,20}")
+
+                if(pattern1.matcher(s).matches()){
+                    img1.setImageResource(R.drawable.check_image)
+                }
+                else{
+                    img1.setImageResource(R.drawable.icon_close)
+                }
+
+                if(pattern2.matcher(s).matches()){
+                    img2.setImageResource(R.drawable.check_image)
+                }
+                else{img2.setImageResource(R.drawable.icon_close)}
+
+                if(pattern3.matcher(s).matches()){
+                    img3.setImageResource(R.drawable.check_image)
+                }
+                else{img3.setImageResource(R.drawable.icon_close)}
+
+                if(pattern4.matcher(s).matches()){
+                    img4.setImageResource(R.drawable.check_image)
+                }
+                else{img4.setImageResource(R.drawable.icon_close)}
+
             }
 
         })

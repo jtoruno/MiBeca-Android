@@ -14,6 +14,7 @@ query GetSubscriptions($count: Int, $nextToken: String) {
       citizenId
       createdAt
       hasNewDeposits
+      networkStatus
     }
     nextToken
   }

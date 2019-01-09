@@ -19,6 +19,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ListView
 import com.amazonaws.GetSubscriptionsQuery
+import com.amazonaws.GetUserInfoQuery
 import com.amazonaws.UpdateNewDepositsStateMutation
 import com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread
 import com.amazonaws.mobile.client.AWSMobileClient
@@ -27,7 +28,11 @@ import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.apollographql.apollo.GraphQLCall
+import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Response
+import com.apollographql.apollo.api.ResponseField
+import com.apollographql.apollo.cache.normalized.CacheKey
+import com.apollographql.apollo.cache.normalized.CacheKeyResolver
 import com.apollographql.apollo.exception.ApolloException
 import com.zimplifica.mibeca.Adapters.IdAdapter
 import com.zimplifica.mibeca.Adapters.NoAdapter
@@ -46,6 +51,8 @@ class HomeFragment2 : Fragment() {
     lateinit var viewModel : BeneficiaryViewModel
     private var mDb : BeneficiaryDatabase? = null
 
+    private var uuidUser = ""
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -58,6 +65,8 @@ class HomeFragment2 : Fragment() {
 
         mDbWorkerThread = DbWorkerThread("dbWorkerThread")
         mDbWorkerThread.start()
+
+
 
         /*
         val list = mutableListOf<UserData>()
@@ -72,11 +81,36 @@ class HomeFragment2 : Fragment() {
                 .context(activity)
                 .awsConfiguration(AWSConfiguration(activity))
                 .credentialsProvider(AWSMobileClient.getInstance())
+                .resolver(object : CacheKeyResolver(){
+
+                    private fun formatCacheKey(id : String?): CacheKey{
+                        return if (id == null || id.isEmpty()){
+                            CacheKey.NO_KEY
+                        } else{
+                            CacheKey.from(id)
+                        }
+                    }
+
+                    override fun fromFieldRecordSet(field: ResponseField, recordSet: MutableMap<String, Any>): CacheKey {
+
+                        val id =  recordSet["id"] as? String
+                        return formatCacheKey(id)
+                    }
+
+                    override fun fromFieldArguments(field: ResponseField, variables: Operation.Variables): CacheKey {
+                        val id =  field.resolveArgument("id", variables) as String
+                        return formatCacheKey(id)
+                    }
+
+                })
                 .build()
+
+        userData()
 
         //getSubscriptions()
         swipeRefresh.setOnRefreshListener {
             //getSubscriptions()
+
             swipeRefresh.isRefreshing= false
         }
 
@@ -103,6 +137,7 @@ class HomeFragment2 : Fragment() {
             }
             val intent = Intent(activity, DepositsByUser::class.java)
             intent.putExtra("idUser",it.citizenId)
+            intent.putExtra("uuidUser", uuidUser)
             //val option : ActivityOptions = ActivityOptions.makeCustomAnimation(mCtx, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
             startActivity(intent)
             //val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(UUID.randomUUID().toString(), "123456789","123")) }
@@ -117,10 +152,65 @@ class HomeFragment2 : Fragment() {
         return view
     }
 
+    fun userData(){
+        val query = GetUserInfoQuery.builder()
+                .build()
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_FIRST).enqueue( object : GraphQLCall.Callback<GetUserInfoQuery.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("ERROR", e.toString())
+
+            }
+
+            override fun onResponse(response: Response<GetUserInfoQuery.Data>) {
+                Log.i("Home", response.data().toString())
+                runOnUiThread {
+                    if(response.data()!=null){
+                        uuidUser = response.data()!!.userInfo?.username()
+                    }
+                }
+
+            }
+
+        })
+    }
+
     override fun onDestroy() {
         mDbWorkerThread.quit()
         BeneficiaryDatabase.destroyInstance()
         super.onDestroy()
+    }
+
+    fun optimisticWrite(citizenId: String, state: Boolean){
+        val query = GetSubscriptionsQuery.builder()
+                .build()
+
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("DepositsByUser", "Failed to update item ", e)
+            }
+            override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
+                val items = arrayListOf<GetSubscriptionsQuery.Item>()
+                if(response.data() != null){
+                    items.addAll(response.data()!!.subscriptions.items())
+                }
+                val iterator = items.iterator()
+                while (iterator.hasNext()){
+                    val oldValue = iterator.next()
+                    if(oldValue.id() == citizenId){
+
+                    }
+                }
+
+                //Add to DAO
+                val task = Runnable { mDb?.beneficiaryDao()?.deleteById(citizenId) }
+                mDbWorkerThread.postTask(task)
+                //////////////////
+                //Overwrite the cache with the new results
+                val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items,null))
+                appSyncClient.store.write(query, data).enqueue(null)
+
+            }
+        })
     }
 
     fun updateDepositState(citizenId : String, state : Boolean){

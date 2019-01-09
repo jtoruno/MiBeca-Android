@@ -6,6 +6,7 @@ mutation SubscribeBeneficiary($citizenId: String!) {
     citizenId
     createdAt
     hasNewDeposits
+    networkStatus
   }
 }
 mutation UnsubscribeBeneficiary($citizenId: String!) {
@@ -15,6 +16,7 @@ mutation UnsubscribeBeneficiary($citizenId: String!) {
     citizenId
     createdAt
     hasNewDeposits
+    networkStatus
   }
 }
 mutation UpdateEndpointAttributes(
@@ -41,6 +43,7 @@ mutation UpdateSubscription(
     citizenId
     createdAt
     hasNewDeposits
+    networkStatus
   }
 }
 mutation UpdateNewDepositsState(
@@ -56,5 +59,6 @@ mutation UpdateNewDepositsState(
     citizenId
     createdAt
     hasNewDeposits
+    networkStatus
   }
 }

@@ -27,6 +27,7 @@ import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
+import com.amazonaws.type.NetworkStatus
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Response
@@ -66,17 +67,6 @@ class HomeFragment2 : Fragment() {
         mDbWorkerThread = DbWorkerThread("dbWorkerThread")
         mDbWorkerThread.start()
 
-
-
-        /*
-        val list = mutableListOf<UserData>()
-        list.add(UserData("116500454"))
-        list.add(UserData("116521234"))
-        list.add(UserData("115650399"))
-        list.add(UserData("116579999"))
-        val adapter = IdAdapter(activity!!,R.layout.layout_id_row,list)
-        recyclerView.adapter = adapter
-        */
         appSyncClient = AWSAppSyncClient.builder()
                 .context(activity)
                 .awsConfiguration(AWSConfiguration(activity))
@@ -134,6 +124,7 @@ class HomeFragment2 : Fragment() {
         mAdapter = BeneficiaryListAdapter(list){
             if(it.hasNewDeposits){
                 updateDepositState(it.citizenId, false)
+                optimisticWrite(it.citizenId, false)
             }
             val intent = Intent(activity, DepositsByUser::class.java)
             intent.putExtra("idUser",it.citizenId)
@@ -165,7 +156,7 @@ class HomeFragment2 : Fragment() {
                 Log.i("Home", response.data().toString())
                 runOnUiThread {
                     if(response.data()!=null){
-                        uuidUser = response.data()!!.userInfo?.username()
+                        uuidUser = response.data()!!.userInfo.username()
                     }
                 }
 
@@ -189,7 +180,7 @@ class HomeFragment2 : Fragment() {
                 Log.e("DepositsByUser", "Failed to update item ", e)
             }
             override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
-                val items = arrayListOf<GetSubscriptionsQuery.Item>()
+                val items = mutableListOf<GetSubscriptionsQuery.Item>()
                 if(response.data() != null){
                     items.addAll(response.data()!!.subscriptions.items())
                 }
@@ -197,13 +188,17 @@ class HomeFragment2 : Fragment() {
                 while (iterator.hasNext()){
                     val oldValue = iterator.next()
                     if(oldValue.id() == citizenId){
-
+                        val beneficiary = GetSubscriptionsQuery.Item("CitizenSubscription",
+                                oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), state, NetworkStatus.offline)
+                        items.remove(oldValue)
+                        items.add(beneficiary)
+                        //Add to DAO
+                        //////////////////
+                        val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), state, NetworkStatus.offline.toString())) }
+                        mDbWorkerThread.postTask(task)
                     }
                 }
-
                 //Add to DAO
-                val task = Runnable { mDb?.beneficiaryDao()?.deleteById(citizenId) }
-                mDbWorkerThread.postTask(task)
                 //////////////////
                 //Overwrite the cache with the new results
                 val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items,null))
@@ -224,68 +219,76 @@ class HomeFragment2 : Fragment() {
             }
 
             override fun onResponse(response: Response<UpdateNewDepositsStateMutation.Data>) {
+                Log.i("HomeFragment",response.data().toString())
+                val data = response.data()!!.updateNewDepositsState()
+                val expected = GetSubscriptionsQuery.Item(data.__typename(), data.id(),data.pk(),
+                        data.citizenId(),data.createdAt(),data.hasNewDeposits(),data.networkStatus())
+                processCacheData(expected, Home.ModelState.UPDATE)
+                /*
                 val oldValue = response?.data()?.updateNewDepositsState()
                 if (oldValue!=null){
                     val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
                     mDbWorkerThread.postTask(task)
                 }
+                */
             }
 
         })
     }
 
-
-
-
-    /*
-    fun getSubscriptions(){
-        val query = GetSubscriptionsQuery.builder().build()
-        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.NETWORK_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
+    fun processCacheData(expected : GetSubscriptionsQuery.Item, condition : Home.ModelState){
+        val query = GetSubscriptionsQuery.builder()
+                .build()
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object :GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
             override fun onFailure(e: ApolloException) {
-                Log.e("HomeFragment", e.toString())
-                runOnUiThread{
-                    swipeRefresh.isRefreshing = false
-                    recyclerView.adapter = NoAdapter(activity!!)
-                }
+                Log.e("Home", "Failed to edit item ", e)
             }
 
             override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
-                if(response.data()?.subscriptions==null){
-                    runOnUiThread{
-                        swipeRefresh.isRefreshing = false
-                        recyclerView.adapter = NoAdapter(activity!!)
+                val items = mutableListOf<GetSubscriptionsQuery.Item>()
+                if(response.data() != null){
+                    items.addAll(response.data()!!.subscriptions.items())
+                }
+                when(condition){
+                    Home.ModelState.ADD->{
+                        items.add(expected)
+                        //Add to DAO
+                        val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(expected.id(), expected.pk(), expected.citizenId(), expected.createdAt(), expected.hasNewDeposits(), expected.networkStatus().toString())) }
+                        mDbWorkerThread.postTask(task)
+                    }
+                    Home.ModelState.DELETE->{
+                        val iterator = items.iterator()
+                        while (iterator.hasNext()){
+                            val oldValue = iterator.next()
+                            if(oldValue.id() == expected.citizenId()){
+                                items.remove(oldValue)
+                            }
+                        }
+                        //Add to DAO
+                        val task = Runnable { mDb?.beneficiaryDao()?.deleteById(expected.citizenId()) }
+                        mDbWorkerThread.postTask(task)
+                    }
+                    Home.ModelState.UPDATE->{
+                        val iterator = items.iterator()
+                        while (iterator.hasNext()){
+                            val oldValue = iterator.next()
+                            if(oldValue.id() == expected.citizenId()){
+                                val beneficiary = GetSubscriptionsQuery.Item("CitizenSubscription",
+                                        oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), oldValue.networkStatus())
+                                items.remove(oldValue)
+                                items.add(beneficiary)
+                                //Add to DAO
+                                //////////////////
+                                val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), expected.networkStatus().toString())) }
+                                mDbWorkerThread.postTask(task)
+                            }
+                        }
                     }
                 }
-                else{
-                    if(response.data()!!.subscriptions.items()?.isEmpty()){
-                        runOnUiThread{
-                            swipeRefresh.isRefreshing = false
-                            recyclerView.adapter = NoAdapter(activity!!)
-                        }
-                    }
-                    else{
-                        val list = mutableListOf<UserData>()
-                        val items = response.data()!!.subscriptions.items()
-                        val iterate = items.iterator()
-                        while (iterate.hasNext()){
-                            val oldValue = iterate.next()
-                            list.add(UserData(oldValue.citizenId()))
-                        }
-                        runOnUiThread {
-                            swipeRefresh.isRefreshing = false
-                            val adapter = IdAdapter(activity!!,R.layout.layout_id_row,list)
-                            recyclerView.adapter = adapter
-                        }
-
-
-                    }
-                }
+                val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items,null))
+                appSyncClient.store.write(query, data).enqueue(null)
             }
 
         })
-
     }
-    */
-
-
 }

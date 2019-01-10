@@ -22,8 +22,7 @@ import com.amazonaws.*
 
 import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
-import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
-import com.amazonaws.mobileconnectors.appsync.AppSyncSubscriptionCall
+import com.amazonaws.mobileconnectors.appsync.*
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.amazonaws.mobileconnectors.pinpoint.PinpointManager
@@ -62,6 +61,10 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
     lateinit var addBtn : ImageButton
     lateinit var termsAndConditions : TextView
     lateinit var privacyPolicy : TextView
+
+    enum class ModelState {
+        ADD, DELETE, UPDATE
+    }
 
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
@@ -177,6 +180,38 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                         return formatCacheKey(id)
                     }
                 })
+                .persistentMutationsCallback(object : PersistentMutationsCallback{
+                    override fun onFailure(error: PersistentMutationsError?) {
+                        Log.e("PMResponse", error.toString())
+                    }
+
+                    override fun onResponse(response: PersistentMutationsResponse?) {
+                        val filter = response?.mutationClassName
+                        Log.e("PersistenMT","Mutation in Process CallBack")
+                        when(filter){
+                            "SubscribeBeneficiaryMutation"->{
+                                val data = response?.dataJSONObject.getJSONObject("subscribeBeneficiary")
+                                val expected = GetSubscriptionsQuery.Item(data.getString("__typename"),data.getString("id"), data.getString("pk"),
+                                        data.getString("citizenId"), data.getString("createdAt"),data.getBoolean("hasNewDeposits"),NetworkStatus.online)
+                                processCacheData(expected,ModelState.ADD)
+                            }
+                            "UnsubscribeBeneficiaryMutation"->{
+                                val data = response?.dataJSONObject.getJSONObject("unsubscribeBeneficiary")
+                                val expected = GetSubscriptionsQuery.Item(data.getString("__typename"),data.getString("id"), data.getString("pk"),
+                                        data.getString("citizenId"), data.getString("createdAt"),data.getBoolean("hasNewDeposits"),NetworkStatus.online)
+                                processCacheData(expected,ModelState.DELETE)
+                            }
+                            "UpdateNewDepositsStateMutation"->{
+                                val data = response?.dataJSONObject.getJSONObject("updateSubscription")
+                                val expected = GetSubscriptionsQuery.Item(data.getString("__typename"),data.getString("id"), data.getString("pk"),
+                                        data.getString("citizenId"), data.getString("createdAt"),data.getBoolean("hasNewDeposits"),NetworkStatus.online)
+                                processCacheData(expected,ModelState.UPDATE)
+                            }
+                        }
+                        Log.e("PMResponse", response?.dataJSONObject?.toString())
+                    }
+
+                })
                 .build()
 
         userData()
@@ -237,6 +272,62 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         }
     }
 
+    fun processCacheData(expected : GetSubscriptionsQuery.Item, condition : ModelState){
+        val query = GetSubscriptionsQuery.builder()
+                .build()
+        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object :GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
+            override fun onFailure(e: ApolloException) {
+                Log.e("Home", "Failed to edit item ", e)
+            }
+
+            override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
+                val items = mutableListOf<GetSubscriptionsQuery.Item>()
+                if(response.data() != null){
+                    items.addAll(response.data()!!.subscriptions.items())
+                }
+                when(condition){
+                    ModelState.ADD->{
+                        items.add(expected)
+                        //Add to DAO
+                        val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(expected.id(), expected.pk(), expected.citizenId(), expected.createdAt(), expected.hasNewDeposits(), expected.networkStatus().toString())) }
+                        mDbWorkerThread.postTask(task)
+                    }
+                    ModelState.DELETE->{
+                        val iterator = items.iterator()
+                        while (iterator.hasNext()){
+                            val oldValue = iterator.next()
+                            if(oldValue.id() == expected.citizenId()){
+                                items.remove(oldValue)
+                            }
+                        }
+                        //Add to DAO
+                        val task = Runnable { mDb?.beneficiaryDao()?.deleteById(expected.citizenId()) }
+                        mDbWorkerThread.postTask(task)
+                    }
+                    ModelState.UPDATE->{
+                        val iterator = items.iterator()
+                        while (iterator.hasNext()){
+                            val oldValue = iterator.next()
+                            if(oldValue.id() == expected.citizenId()){
+                                val beneficiary = GetSubscriptionsQuery.Item("CitizenSubscription",
+                                        oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), oldValue.networkStatus())
+                                items.remove(oldValue)
+                                items.add(beneficiary)
+                                //Add to DAO
+                                //////////////////
+                                val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), expected.networkStatus().toString())) }
+                                mDbWorkerThread.postTask(task)
+                            }
+                        }
+                    }
+                }
+                val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items,null))
+                appSyncClient.store.write(query, data).enqueue(null)
+            }
+
+        })
+    }
+
     fun optimisticWrite(citizenId: String){
         val query = GetSubscriptionsQuery.builder()
                 .build()
@@ -247,14 +338,14 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 Log.e("Home", "Failed to add item ", e)
             }
             override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
-                val items = arrayListOf<GetSubscriptionsQuery.Item>()
+                val items = mutableListOf<GetSubscriptionsQuery.Item>()
                 if(response.data() != null){
                     items.addAll(response.data()!!.subscriptions.items())
                 }
                 items.add(GetSubscriptionsQuery.Item(expected.__typename(),expected.id(),expected.pk(),expected.citizenId(),
                         expected.createdAt(),expected.hasNewDeposits(), NetworkStatus.offline))
                 //Add to DAO
-                val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(expected.id(), expected.pk(), expected.citizenId(), expected.createdAt(), expected.hasNewDeposits())) }
+                val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(expected.id(), expected.pk(), expected.citizenId(), expected.createdAt(), expected.hasNewDeposits(),NetworkStatus.offline.toString())) }
                 mDbWorkerThread.postTask(task)
                 //////////////////
                 //Overwrite the cache with the new results
@@ -266,12 +357,15 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
 
     fun addCitizenId(citizenId : String){
+
+
+
         val mutation = SubscribeBeneficiaryMutation.builder()
                 .citizenId(citizenId)
                 .build()
         appSyncClient.mutate(mutation).enqueue(object : GraphQLCall.Callback<SubscribeBeneficiaryMutation.Data>(){
             override fun onFailure(e: ApolloException) {
-                Log.e("ERROR", e.toString())
+                Log.e("ERROR ADD BENEFICIARY ", e.toString())
                 runOnUiThread {
                     Toast.makeText(this@Home, "Ha ocurrido un error agregando Beneficiario, intente de nuevo.", Toast.LENGTH_SHORT).show()
                 }
@@ -279,6 +373,10 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
             override fun onResponse(response: Response<SubscribeBeneficiaryMutation.Data>) {
                 println(response.data().toString())
+                val data = response.data()!!.subscribeBeneficiary()
+                val expected = GetSubscriptionsQuery.Item(data.__typename(), data.id(),data.pk(),
+                        data.citizenId(),data.createdAt(),data.hasNewDeposits(),data.networkStatus())
+                processCacheData(expected, ModelState.ADD)
                 runOnUiThread {
                     /*
                     fm.popBackStackImmediate(null,FragmentManager.POP_BACK_STACK_INCLUSIVE)
@@ -340,6 +438,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 .endpointId(endPointId!!)
                 .action(action)
                 .build()
+
         appSyncClient.mutate(mutation).enqueue(object : GraphQLCall.Callback<UpdateEndpointAttributesMutation.Data>(){
             override fun onFailure(e: ApolloException) {
                 Log.e("Home UpdateEndPoint", e.toString())
@@ -364,7 +463,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
             override fun onResponse(response: Response<SubscribeToAddBeneficiarySubscription.Data>) {
                 val oldValue = response?.data()?.subscribeToAddBeneficiary()
                 if (oldValue!=null){
-                    val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
+                    val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), oldValue.networkStatus().toString())) }
                     mDbWorkerThread.postTask(task)
                 }
             }
@@ -413,7 +512,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 val oldValue = response?.data()?.subscribeToNewDeposits()
                 if (oldValue!=null){
                     Log.e("Home", "SubscribeDepositupdate")
-                    val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
+                    val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(),oldValue.networkStatus().toString())) }
                     mDbWorkerThread.postTask(task)
                 }
             }
@@ -425,6 +524,8 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         })
     }
 
+
+
     fun optimisticWriteDelete(citizenId: String){
         val query = GetSubscriptionsQuery.builder()
                 .build()
@@ -433,7 +534,7 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                 Log.e("DepositsByUser", "Failed to delete item ", e)
             }
             override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
-                val items = arrayListOf<GetSubscriptionsQuery.Item>()
+                val items = mutableListOf<GetSubscriptionsQuery.Item>()
                 if(response.data() != null){
                     items.addAll(response.data()!!.subscriptions.items())
                 }
@@ -442,6 +543,14 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
                     val oldValue = iterator.next()
                     if(oldValue.id() == citizenId){
                         items.remove(oldValue)
+                        val beneficiary = GetSubscriptionsQuery.Item("CitizenSubscription",
+                                oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), NetworkStatus.offlineDeleted)
+                        items.remove(oldValue)
+                        items.add(beneficiary)
+                        //Add to DAO
+                        //////////////////
+                        val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), NetworkStatus.offlineDeleted.toString())) }
+                        mDbWorkerThread.postTask(task)
                     }
                 }
 
@@ -469,6 +578,10 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
 
             override fun onResponse(response: Response<UnsubscribeBeneficiaryMutation.Data>) {
                 Log.e("DepositsByUser",response.data().toString())
+                val data = response.data()!!.unsubscribeBeneficiary()
+                val expected = GetSubscriptionsQuery.Item(data.__typename(), data.id(),data.pk(),
+                        data.citizenId(),data.createdAt(),data.hasNewDeposits(),data.networkStatus())
+                processCacheData(expected,ModelState.DELETE)
             }
 
         })

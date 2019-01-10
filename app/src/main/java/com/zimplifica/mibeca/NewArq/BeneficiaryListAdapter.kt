@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.amazonaws.type.NetworkStatus
 import com.zimplifica.mibeca.R
 
 class BeneficiaryListAdapter(val beneficiary : List<Beneficiary>,val callback: (Beneficiary) -> Unit) : RecyclerView.Adapter<BeneficiaryListAdapter.BeneficiaryViewHolder>() {
@@ -42,6 +43,10 @@ class BeneficiaryListAdapter(val beneficiary : List<Beneficiary>,val callback: (
         p0.itemView.setOnClickListener {
             Log.e("PBA","CLICKED "+itemCount)
             callback(mBeneficiaries[p1])
+        }
+        when(data.networkStatus){
+            NetworkStatus.offlineDeleted.toString()->{p0.itemView.visibility=View.GONE}
+            else->{p0.itemView.visibility=View.VISIBLE}
         }
     }
 

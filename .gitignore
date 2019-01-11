@@ -38,7 +38,6 @@ build/
 .idea/compiler.xml
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/.name
-settings.gradle
 gradle/
 .idea/assetWizardSettings.xml
 .idea/caches/

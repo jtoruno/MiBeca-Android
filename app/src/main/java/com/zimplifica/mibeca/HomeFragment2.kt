@@ -27,7 +27,7 @@ import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
-import com.amazonaws.type.NetworkStatus
+import com.amazonaws.type.DeltaAction
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Response
@@ -100,7 +100,6 @@ class HomeFragment2 : Fragment() {
         //getSubscriptions()
         swipeRefresh.setOnRefreshListener {
             //getSubscriptions()
-
             swipeRefresh.isRefreshing= false
         }
 
@@ -123,8 +122,8 @@ class HomeFragment2 : Fragment() {
         val list = mutableListOf<Beneficiary>()
         mAdapter = BeneficiaryListAdapter(list){
             if(it.hasNewDeposits){
-                updateDepositState(it.citizenId, false)
-                optimisticWrite(it.citizenId, false)
+                //updateDepositState(it.citizenId, false)
+                //optimisticWrite(it.citizenId, false)
             }
             val intent = Intent(activity, DepositsByUser::class.java)
             intent.putExtra("idUser",it.citizenId)
@@ -189,12 +188,12 @@ class HomeFragment2 : Fragment() {
                     val oldValue = iterator.next()
                     if(oldValue.id() == citizenId){
                         val beneficiary = GetSubscriptionsQuery.Item("CitizenSubscription",
-                                oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), state, NetworkStatus.offline)
+                                oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), state,oldValue.aws_ds())
                         items.remove(oldValue)
                         items.add(beneficiary)
                         //Add to DAO
                         //////////////////
-                        val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), state, NetworkStatus.offline.toString())) }
+                        val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), state)) }
                         mDbWorkerThread.postTask(task)
                     }
                 }
@@ -222,7 +221,7 @@ class HomeFragment2 : Fragment() {
                 Log.i("HomeFragment",response.data().toString())
                 val data = response.data()!!.updateNewDepositsState()
                 val expected = GetSubscriptionsQuery.Item(data.__typename(), data.id(),data.pk(),
-                        data.citizenId(),data.createdAt(),data.hasNewDeposits(),data.networkStatus())
+                        data.citizenId(),data.createdAt(),data.hasNewDeposits(),DeltaAction.update)
                 processCacheData(expected, Home.ModelState.UPDATE)
                 /*
                 val oldValue = response?.data()?.updateNewDepositsState()
@@ -253,7 +252,7 @@ class HomeFragment2 : Fragment() {
                     Home.ModelState.ADD->{
                         items.add(expected)
                         //Add to DAO
-                        val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(expected.id(), expected.pk(), expected.citizenId(), expected.createdAt(), expected.hasNewDeposits(), expected.networkStatus().toString())) }
+                        val task = Runnable { mDb?.beneficiaryDao()?.save(Beneficiary(expected.id(), expected.pk(), expected.citizenId(), expected.createdAt(), expected.hasNewDeposits())) }
                         mDbWorkerThread.postTask(task)
                     }
                     Home.ModelState.DELETE->{
@@ -274,12 +273,12 @@ class HomeFragment2 : Fragment() {
                             val oldValue = iterator.next()
                             if(oldValue.id() == expected.citizenId()){
                                 val beneficiary = GetSubscriptionsQuery.Item("CitizenSubscription",
-                                        oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), oldValue.networkStatus())
+                                        oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), oldValue.aws_ds())
                                 items.remove(oldValue)
                                 items.add(beneficiary)
                                 //Add to DAO
                                 //////////////////
-                                val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), expected.networkStatus().toString())) }
+                                val task = Runnable { mDb?.beneficiaryDao()?.update(Beneficiary(oldValue.id(), oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits())) }
                                 mDbWorkerThread.postTask(task)
                             }
                         }

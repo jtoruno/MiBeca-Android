@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
 
                 FirebaseInstanceId.getInstance().instanceId
                         .addOnCompleteListener { task ->
-                            val token = task.result!!.token
+                            val token = task.result?.token
                             Log.d("MainActivity", "Registering push notifications token: $token")
                             pinpointManager!!.notificationClient.registerDeviceToken(token)
                         }

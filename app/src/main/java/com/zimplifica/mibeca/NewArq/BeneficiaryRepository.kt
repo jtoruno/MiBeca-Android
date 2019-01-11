@@ -10,7 +10,6 @@ import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
 import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
-import com.amazonaws.type.NetworkStatus
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Response
@@ -65,60 +64,20 @@ class BeneficiaryRepository  {
 
     fun getBeneficiaries() : LiveData<List<Beneficiary>> {
         //refreshBeneficiary()
-        checkIfOffline()
+        //checkIfOffline()
         return beneficiaryDao!!.list()
     }
 
     fun getBeneficiary() : LiveData<Beneficiary>{
 
-        refreshBeneficiary()
+        //refreshBeneficiary()
         return beneficiaryDao!!.load()
     }
 
-    private fun checkIfOffline() {
-        val query = GetSubscriptionsQuery.builder()
-                .build()
-        client!!.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
-            override fun onFailure(e: ApolloException) {
-                Log.e("Home", "Failed to cache items ", e)
-            }
-
-            override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
-                Log.e("RepositoryCache",response.data().toString())
-                if(response.hasErrors()){
-                    Log.e(TAG, "onResponse: errors:" + response.errors())
-                    return
-                }
-                var checkOffline = false
-                val list = mutableListOf<Beneficiary>()
-                val items = arrayListOf<GetSubscriptionsQuery.Item>()
-                if(response.data()!=null){
-                    items.addAll(response.data()!!.subscriptions.items())
-                }
-                val iterator = items.iterator()
-                while (iterator.hasNext()){
-                    val oldValue = iterator.next()
-                    list.add(Beneficiary(oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), oldValue.networkStatus().toString()))
-                    if(oldValue.networkStatus()== NetworkStatus.offline || oldValue.networkStatus()==NetworkStatus.offlineDeleted){
-                        checkOffline = true
-                    }
-                }
-                beneficiaryDao!!.deleteAll()
-                beneficiaryDao!!.saveList(list)
-                if(!checkOffline){
-                    refreshBeneficiary()
-                }
-                else{
-                    Log.e("BeneficiaryRepo", "Offline things to do")
-                }
-
-            }
-        })
-    }
 
     private fun refreshBeneficiary(){
         val query = GetSubscriptionsQuery.builder().build()
-        client!!.query(query).responseFetcher(AppSyncResponseFetchers.NETWORK_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
+        client!!.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
             override fun onFailure(e: ApolloException) {
                 Log.e(TAG, "Failed to refresh news item", e)
             }
@@ -131,24 +90,22 @@ class BeneficiaryRepository  {
                 Log.d(TAG, "onResponse: accessing data")
                 val list = mutableListOf<Beneficiary>()
                 Log.e("BeneficiaryRepo", response.data().toString())
-                val items = response.data()!!.subscriptions.items()
-                val iterate = items.iterator()
-                while (iterate?.hasNext()!!){
-                    val oldValue = iterate.next()
-                    list.add(Beneficiary(oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits(), oldValue.networkStatus().toString()))
-                }
-                /*
-                try {
+                response.data()?.subscriptions?.let {
+                    val iterate = it.items().iterator()
+                    while (iterate.hasNext()){
+                        val oldValue = iterate.next()
+                        list.add(Beneficiary(oldValue.id(),oldValue.pk(), oldValue.citizenId(), oldValue.createdAt(), oldValue.hasNewDeposits()))
+                    }
 
-                }catch (e : ParseException){
-                    e.printStackTrace()
+                } ?: run {
+                    //init cache db
+
+                    var items = mutableListOf<GetSubscriptionsQuery.Item>()
+                    //update cache db
+                    val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items, null))
+                    client?.store?.write(query,data)?.enqueue(null)
                 }
-                */
-                val it2 = list.iterator()
-                while (it2.hasNext()){
-                    val oldValue = it2.next()
-                    Log.e("List to show", oldValue.citizenId)
-                }
+
                 beneficiaryDao!!.deleteAll()
                 beneficiaryDao!!.saveList(list)
 

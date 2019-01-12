@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 
 public class CustomSync {
 
-
+    private Cancelable handle;
     private AWSAppSyncClient client;
 
     public CustomSync(AWSAppSyncClient client){
@@ -26,8 +26,15 @@ public class CustomSync {
     public void sync (Query baseQuery, GraphQLCall.Callback baseQueryCallback, OnDeltaUpdateSubscription subscription, AppSyncSubscriptionCall.Callback subscriptionCallback,
                       Query deltaQuery, GraphQLCall.Callback deltaQueryCallback, long baseRefreshingIntervalInSeconds){
 
-        Cancelable handle = client.sync(baseQuery, baseQueryCallback, subscription, subscriptionCallback, deltaQuery, deltaQueryCallback, baseRefreshingIntervalInSeconds);
+         handle = client.sync(baseQuery, baseQueryCallback, subscription, subscriptionCallback, deltaQuery, deltaQueryCallback, baseRefreshingIntervalInSeconds);
 
     }
+
+    public void closeSync(){
+        if(handle != null){
+            handle.cancel();
+        }
+    }
+
 
 }

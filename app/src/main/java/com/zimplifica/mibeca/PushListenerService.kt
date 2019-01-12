@@ -28,6 +28,7 @@ class PushListenerService : FirebaseMessagingService() {
 
         val notificationClient = MainActivity.getPinpointManager(applicationContext).notificationClient
 
+
         val notificationDetails = NotificationDetails.builder()
                 .from(remoteMessage.from)
                 .mapData(remoteMessage.data)

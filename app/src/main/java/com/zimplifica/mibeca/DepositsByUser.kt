@@ -23,13 +23,9 @@ import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonaws.mobile.config.AWSConfiguration
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient
 import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers
-import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.apollographql.apollo.GraphQLCall
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Response
-import com.apollographql.apollo.api.ResponseField
-import com.apollographql.apollo.cache.normalized.CacheKey
-import com.apollographql.apollo.cache.normalized.CacheKeyResolver
 import com.apollographql.apollo.exception.ApolloException
 import com.zimplifica.mibeca.Adapters.DepositAdapter
 import com.zimplifica.mibeca.Adapters.NoAdapter
@@ -68,7 +64,7 @@ class DepositsByUser : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
         listView = findViewById(R.id.deposit_list_view2)
-        listView.isEnabled = false
+        //listView.isEnabled = false
         swipeRefresh = findViewById(R.id.swipeRefreshDeposits)
         deleteBtn = findViewById(R.id.deleteBtnDeposits)
 
@@ -90,28 +86,6 @@ class DepositsByUser : AppCompatActivity() {
                 .context(this)
                 .awsConfiguration(AWSConfiguration(this))
                 .credentialsProvider(AWSMobileClient.getInstance())
-                .resolver(object : CacheKeyResolver(){
-
-                    private fun formatCacheKey(id : String?): CacheKey{
-                        return if (id == null || id.isEmpty()){
-                            CacheKey.NO_KEY
-                        } else{
-                            CacheKey.from(id)
-                        }
-                    }
-
-                    override fun fromFieldRecordSet(field: ResponseField, recordSet: MutableMap<String, Any>): CacheKey {
-
-                        val id =  recordSet["id"] as? String
-                        return formatCacheKey(id)
-                    }
-
-                    override fun fromFieldArguments(field: ResponseField, variables: Operation.Variables): CacheKey {
-                        val id =  field.resolveArgument("id", variables) as String
-                        return formatCacheKey(id)
-                    }
-
-                })
                 .build()
 
         swipeRefresh.setOnRefreshListener {
@@ -161,73 +135,11 @@ class DepositsByUser : AppCompatActivity() {
         mDb = BeneficiaryDatabase.getInstance(this)
     }
 
-
-    fun optimisticWrite(citizenId: String){
-        val query = GetSubscriptionsQuery.builder()
-                .build()
-
-        appSyncClient.query(query).responseFetcher(AppSyncResponseFetchers.CACHE_ONLY).enqueue(object : GraphQLCall.Callback<GetSubscriptionsQuery.Data>(){
-            override fun onFailure(e: ApolloException) {
-                Log.e("DepositsByUser", "Failed to delete item ", e)
-            }
-            override fun onResponse(response: Response<GetSubscriptionsQuery.Data>) {
-                val items = arrayListOf<GetSubscriptionsQuery.Item>()
-                if(response.data() != null){
-                    items.addAll(response.data()!!.subscriptions.items())
-                }
-                val iterator = items.iterator()
-                while (iterator.hasNext()){
-                    val oldValue = iterator.next()
-                    if(oldValue.id() == citizenId){
-                        items.remove(oldValue)
-                    }
-                }
-
-                //Add to DAO
-                val task = Runnable { mDb?.beneficiaryDao()?.deleteById(citizenId) }
-                mDbWorkerThread.postTask(task)
-                //////////////////
-                //Overwrite the cache with the new results
-                val data = GetSubscriptionsQuery.Data(GetSubscriptionsQuery.GetSubscriptions("PaginatedSubscriptions",items,null))
-                appSyncClient.store.write(query, data).enqueue(null)
-
-            }
-        })
+    override fun onDestroy() {
+        super.onDestroy()
+        mDbWorkerThread.quit()
+        BeneficiaryDatabase.destroyInstance()
     }
-
-
-    fun DeleteSubscription(userNameId : String){
-        val mutation = UnsubscribeBeneficiaryMutation.builder()
-                .citizenId(userNameId)
-                .build()
-        appSyncClient.mutate(mutation).enqueue(object : GraphQLCall.Callback<UnsubscribeBeneficiaryMutation.Data>(){
-            override fun onFailure(e: ApolloException) {
-                Log.e("DepositsByUser ", "Error", e)
-                runOnUiThread {
-                    spinnerDialog.dismiss()
-                    Toast.makeText(this@DepositsByUser, "Error al eliminar subscripción",Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onResponse(response: Response<UnsubscribeBeneficiaryMutation.Data>) {
-                Log.e("DepositsByUser",response.data().toString())
-                spinnerDialog.dismiss()
-                runOnUiThread {
-                    saveStringInSp(this@DepositsByUser, "refreshFragmentCode", "200")
-                    saveStringInSp(this@DepositsByUser, "citizenId", userNameId)
-                }
-                val oldValue = response?.data()?.unsubscribeBeneficiary()
-                if (oldValue!=null){
-                    val task = Runnable { mDb?.beneficiaryDao()?.deleteById(oldValue.citizenId()) }
-                    mDbWorkerThread.postTask(task)
-                }
-                onBackPressed()
-            }
-
-        })
-    }
-
-
 
     fun saveStringInSp(ctx: Context, key: String, value: String) {
         val editor = ctx.getSharedPreferences("SP", Activity.MODE_PRIVATE).edit()

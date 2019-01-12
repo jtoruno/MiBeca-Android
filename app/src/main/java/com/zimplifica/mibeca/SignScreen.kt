@@ -91,20 +91,25 @@ class SignScreen : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                     signInBtn.isEnabled = true
                     //Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
-
-                    val exception = e as AmazonServiceException
-                    when(exception.errorCode){
-                        "UserNotConfirmedException" ->{
-                            val intent = Intent(this@SignScreen, VerifyCode::class.java)
-                            intent.putExtra("userName",userName)
-                            intent.putExtra("password",password)
-                            val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@SignScreen, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
-                            startActivity(intent, option.toBundle())
-                        }
-                        else -> {
-                            Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
+                    if(e is AmazonServiceException){
+                        val exception = e as AmazonServiceException
+                        when(exception.errorCode){
+                            "UserNotConfirmedException" ->{
+                                val intent = Intent(this@SignScreen, VerifyCode::class.java)
+                                intent.putExtra("userName",userName)
+                                intent.putExtra("password",password)
+                                val option : ActivityOptions = ActivityOptions.makeCustomAnimation(this@SignScreen, R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom)
+                                startActivity(intent, option.toBundle())
+                            }
+                            else -> {
+                                Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
+                    else{
+                        Toast.makeText(this@SignScreen,"Error al iniciar Sesión",Toast.LENGTH_SHORT).show()
+                    }
+
                 }
                 Log.e("SignInScreen", "Sign-in error", e)
                 Log.e("SignInScreen", e?.message.toString())

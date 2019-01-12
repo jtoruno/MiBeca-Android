@@ -193,14 +193,17 @@ class FinishSignUp : AppCompatActivity() {
                     signUpBtn.isEnabled = true
                     Log.e("SignUp", e.toString())
                     //Toast.makeText(this@TakePhone,"Error al crear la cuenta, intente de nuevo", Toast.LENGTH_SHORT).show()
-                    val exception = e as AmazonServiceException
-                    when(exception.errorCode){
-                        "UsernameExistsException" -> {
-                            errorTxt.visibility = View.VISIBLE
-                            errorTxt.postDelayed(Runnable { errorTxt.setVisibility(View.GONE) }, 5000)
+                    if(e is AmazonServiceException){
+                        val exception = e as AmazonServiceException
+                        when(exception.errorCode){
+                            "UsernameExistsException" -> {
+                                errorTxt.visibility = View.VISIBLE
+                                errorTxt.postDelayed(Runnable { errorTxt.setVisibility(View.GONE) }, 5000)
+                            }
                         }
+                    }else{
+                        Toast.makeText(this@FinishSignUp,"Error al crear la cuenta, intente de nuevo", Toast.LENGTH_SHORT).show()
                     }
-
                 }
 
             }

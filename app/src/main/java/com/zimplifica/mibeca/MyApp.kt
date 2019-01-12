@@ -46,7 +46,7 @@ class MyApp: Application() {
                 Log.e("App", intent?.extras.toString())
 
                 val am = context!!.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-                val cn = am.getRunningTasks(1).get(0).topActivity
+                val cn = am.getRunningTasks(1)[0].topActivity
                 println(cn)
 
                 val m = Intent(this@MyApp, FragmentTryActivity::class.java)
@@ -57,7 +57,7 @@ class MyApp: Application() {
             }
 
         }
-        LocalBroadcastManager.getInstance(this).registerReceiver(nMessageReceiver,  IntentFilter("push-notification"))
+        //LocalBroadcastManager.getInstance(this).registerReceiver(nMessageReceiver,  IntentFilter("push-notification"))
 
 
     }

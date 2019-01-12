@@ -23,4 +23,6 @@ interface BeneficiaryDao {
     fun deleteById(citizenIdDelete : String)
     @Update
     fun update(beneficiary: Beneficiary)
+    @Query("UPDATE Beneficiary SET hasNewDeposits = :status WHERE id = :citId")
+    fun updateDepositStatus(citId : String, status : Boolean)
 }

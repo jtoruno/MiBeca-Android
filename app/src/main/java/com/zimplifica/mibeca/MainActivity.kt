@@ -89,12 +89,28 @@ class MainActivity : AppCompatActivity() {
 
                 val pinpointManager = PinpointManager(pinpointConfig)
 
+                /*
                 FirebaseInstanceId.getInstance().instanceId
                         .addOnCompleteListener { task ->
                             val token = task.result?.token
-                            Log.d("MainActivity", "Registering push notifications token: $token")
-                            pinpointManager!!.notificationClient.registerDeviceToken(token)
-                        }
+                            if(token != null){
+                                Log.d("MainActivity", "Registering push notifications token: $token")
+                                pinpointManager!!.notificationClient.registerDeviceToken(token)
+                            }
+                        }*/
+                FirebaseInstanceId.getInstance().instanceId
+                        .addOnCompleteListener(object : OnCompleteListener<InstanceIdResult>{
+                            override fun onComplete(p0: Task<InstanceIdResult>) {
+                                if(!p0.isSuccessful){
+                                    Log.w("MainActivity", p0.exception.toString())
+                                    return
+                                }
+                                val token = p0.result?.token
+                                Log.e("Token Notifications",token)
+                                pinpointManager.notificationClient.registerDeviceToken(token)
+                            }
+
+                        })
 
             return pinpointManager
         }

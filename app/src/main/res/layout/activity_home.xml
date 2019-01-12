@@ -119,6 +119,7 @@
 
 
                 <TableRow
+                    android:id="@+id/security_row_home"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/backgroundProfile">
@@ -136,6 +137,7 @@
                 </TableRow>
 
                 <TableRow
+                    android:id="@+id/password_row_home"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >

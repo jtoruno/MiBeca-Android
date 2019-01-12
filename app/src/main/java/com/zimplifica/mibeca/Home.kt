@@ -13,6 +13,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
+import android.view.View
 import android.view.Window
 import android.widget.*
 import com.amazonaws.*
@@ -58,6 +59,11 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
     lateinit var customSync: CustomSync
     lateinit var spinnerDialog : Dialog
 
+    lateinit var securityRow : TableRow
+    lateinit var passwordRow : TableRow
+    lateinit var touchIdRow : TableRow
+
+
 
     override fun onNavigationItemSelected(p0: MenuItem): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -95,6 +101,13 @@ class Home : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListen
         }
         signOut = findViewById(R.id.signOutTxt)
         addBtn = findViewById(R.id.addImgBtn)
+        securityRow = findViewById(R.id.security_row_home)
+        securityRow.visibility = View.GONE
+        passwordRow = findViewById(R.id.password_row_home)
+        passwordRow.visibility = View.GONE
+        touchIdRow = findViewById(R.id.touchIdRow)
+        touchIdRow.visibility = View.GONE
+
         accountInfo = findViewById(R.id.accountInfotextView)
         accountInfo.text = AWSMobileClient.getInstance().username
         accountInfo.setOnClickListener {
